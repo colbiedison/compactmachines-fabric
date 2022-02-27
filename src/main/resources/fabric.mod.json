@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "compactmachines-fabric",
+  "version": "${version}",
+  "name": "Compact Machines Fabric",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/compactmachines/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "us.dison.compactmachines.client.CompactMachinesClient"
+    ],
+    "main": [
+      "us.dison.compactmachines.CompactMachines"
+    ]
+  },
+  "mixins": [
+    "compactmachines.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.13.3",
+    "fabric": "*",
+    "minecraft": "1.18.1"
+  }
+}
