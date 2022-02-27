@@ -2,7 +2,6 @@ package us.dison.compactmachines.util;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.server.world.ServerChunkManager;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -19,7 +18,6 @@ public abstract class RoomUtil {
         BlockPos.Mutable pos = new BlockPos.Mutable(255+8,7,255+8); // Center of the first region, southwest of origin
         Direction direction = Direction.NORTH;
 
-        int legLength = id / 2;
         int index = 1;
         for (int i = 2; i <= id; i++) {
             int curLegLength = i / 2;

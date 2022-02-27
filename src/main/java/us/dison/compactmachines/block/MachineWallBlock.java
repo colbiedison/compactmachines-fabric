@@ -12,7 +12,6 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
@@ -24,13 +23,14 @@ import us.dison.compactmachines.item.PSDItem;
 
 public class MachineWallBlock extends Block implements BlockEntityProvider {
 
-    private boolean breakable;
+    private final boolean breakable;
 
     public MachineWallBlock(Settings settings, boolean breakable) {
         super(settings);
         this.breakable = breakable;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         super.onUse(state, world, pos, player, hand, hit);

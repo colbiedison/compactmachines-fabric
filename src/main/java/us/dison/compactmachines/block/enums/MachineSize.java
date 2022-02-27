@@ -3,7 +3,7 @@ package us.dison.compactmachines.block.enums;
 import com.mojang.serialization.Codec;
 import net.minecraft.util.StringIdentifiable;
 
-public enum MachineSize implements StringIdentifiable {
+public enum MachineSize {
     TINY("tiny", 3),
     SMALL("small", 5),
     NORMAL("normal", 7),
@@ -14,7 +14,6 @@ public enum MachineSize implements StringIdentifiable {
     private final String name;
     private final int size;
 
-    public static final Codec<MachineSize> CODEC = StringIdentifiable.createCodec(MachineSize::values, MachineSize::getFromSize);
 
     private MachineSize(String name, int size) {
         this.name = name;
@@ -33,8 +32,8 @@ public enum MachineSize implements StringIdentifiable {
 
     }
 
-    @Override
-    public String asString() {
+
+    public String getName() {
         return this.name;
     }
 

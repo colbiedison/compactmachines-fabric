@@ -118,7 +118,7 @@ public class RoomManager extends PersistentState {
 
     public static class Room {
 
-        public static Codec<Room> CODEC = RecordCodecBuilder.create(instance ->
+        public static final Codec<Room> CODEC = RecordCodecBuilder.create(instance ->
                 instance.group(
                         Identifier.CODEC.fieldOf("world").forGetter(Room::getWorld),
                         Codec.STRING.fieldOf("owner").forGetter(Room::getOwner),
@@ -128,11 +128,11 @@ public class RoomManager extends PersistentState {
                 )
                 .apply(instance, Room::new));
 
-        private Identifier world;
-        private String owner;
-        private BlockPos machine;
-        private BlockPos center;
-        private int number;
+        private final Identifier world;
+        private final String owner;
+        private final BlockPos machine;
+        private final BlockPos center;
+        private final int number;
 
 
         public Room(Identifier world, String owner, BlockPos machine, BlockPos center, int number) {

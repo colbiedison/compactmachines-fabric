@@ -1,7 +1,6 @@
 package us.dison.compactmachines;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -16,18 +15,14 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.LiteralText;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
-import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeEffects;
 import net.minecraft.world.biome.GenerationSettings;
 import net.minecraft.world.biome.SpawnSettings;
-import net.minecraft.world.dimension.DimensionType;
 import us.dison.compactmachines.block.MachineBlock;
 import us.dison.compactmachines.block.MachineWallBlock;
 import us.dison.compactmachines.block.entity.MachineWallBlockEntity;
@@ -40,9 +35,6 @@ public class CompactMachines implements ModInitializer {
 
     public static final String MODID = "compactmachines";
 
-
-    // Dimension
-    public static ServerWorld cmWorld = null;
 
     // Biome & biome key
     private static final Biome CMBIOME = createCMBiome();
@@ -86,9 +78,11 @@ public class CompactMachines implements ModInitializer {
     public static BlockEntityType<MachineBlockEntity> MACHINE_BLOCK_ENTITY;
     public static BlockEntityType<MachineWallBlockEntity> MACHINE_WALL_BLOCK_ENTITY;
 
-    private static long cmCount = 0L;
-
+    // Room manager (persistent data storage)
     private static RoomManager roomManager = null;
+
+    // Dimension
+    public static ServerWorld cmWorld = null;
 
 
     @Override
@@ -102,13 +96,13 @@ public class CompactMachines implements ModInitializer {
         });
         ServerTickEvents.START_WORLD_TICK.register(world -> {
             if (world.equals(cmWorld)) {
-                roomManager = RoomManager.get(cmWorld);
                 roomManager.onServerWorldTick(cmWorld);
             }
         });
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             cmWorld = server.getWorld(RegistryKey.of(Registry.WORLD_KEY, new Identifier(MODID, "compactmachinesdim")));
+            roomManager = RoomManager.get(cmWorld);
         });
 
         // REGISTER Biome
@@ -164,11 +158,6 @@ public class CompactMachines implements ModInitializer {
                 .spawnSettings(spawnSettings.build())
                 .generationSettings(generationSettings.build())
                 .build();
-    }
-
-    public static long nextID() {
-        cmCount += 1L;
-        return cmCount;
     }
 
     public static RoomManager getRoomManager() {

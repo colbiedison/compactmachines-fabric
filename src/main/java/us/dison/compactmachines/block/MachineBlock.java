@@ -3,28 +3,19 @@ package us.dison.compactmachines.block;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.registry.BuiltinRegistries;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.dimension.DimensionOptions;
-import net.minecraft.world.dimension.DimensionType;
 import org.jetbrains.annotations.Nullable;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.block.enums.MachineSize;
@@ -34,19 +25,17 @@ import us.dison.compactmachines.item.PSDItem;
 import us.dison.compactmachines.util.PlayerUtil;
 import us.dison.compactmachines.util.RoomUtil;
 
-import java.awt.*;
-import java.util.Objects;
-
 
 public class MachineBlock extends Block implements BlockEntityProvider {
 
-    public MachineSize size;
+    public final MachineSize size;
 
     public MachineBlock(Settings settings, MachineSize machineSize) {
         super(settings);
         this.size = machineSize;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         super.onUse(state, world, pos, player, hand, hit);
@@ -65,7 +54,6 @@ public class MachineBlock extends Block implements BlockEntityProvider {
                     blockEntity.setMachineID(machineID);
                     blockEntity.setOwner(serverPlayer.getUuid());
                     BlockPos roomCenterPos = RoomUtil.getCenterPosByID(machineID);
-                    ChunkPos roomChunkPos = new ChunkPos(roomCenterPos);
                     roomManager.addRoom(world.getRegistryKey().getValue(), serverPlayer.getUuidAsString(), pos, roomCenterPos, machineID);
                     RoomUtil.generateRoom(CompactMachines.cmWorld, machineID, blockEntity.getSize());
                 } else {
