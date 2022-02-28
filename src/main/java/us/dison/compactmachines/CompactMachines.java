@@ -23,6 +23,8 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeEffects;
 import net.minecraft.world.biome.GenerationSettings;
 import net.minecraft.world.biome.SpawnSettings;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import us.dison.compactmachines.block.MachineBlock;
 import us.dison.compactmachines.block.MachineWallBlock;
 import us.dison.compactmachines.block.entity.MachineWallBlockEntity;
@@ -34,6 +36,7 @@ import us.dison.compactmachines.item.PSDItem;
 public class CompactMachines implements ModInitializer {
 
     public static final String MODID = "compactmachines";
+    public static final Logger LOGGER = LogManager.getLogger();
 
 
     // Biome & biome key
@@ -53,7 +56,7 @@ public class CompactMachines implements ModInitializer {
 
     // Block settings
     public static final FabricBlockSettings SETTINGS_BLOCK_MACHINE = FabricBlockSettings.of(Material.METAL).strength(4.0f).requiresTool();
-    public static final FabricBlockSettings SETTINGS_BLOCK_WALL = FabricBlockSettings.of(Material.METAL).strength(8.0f).requiresTool();
+    public static final FabricBlockSettings SETTINGS_BLOCK_WALL = FabricBlockSettings.of(Material.METAL).strength(4.0f).requiresTool();
     // Block
     public static final MachineBlock BLOCK_MACHINE_TINY = new MachineBlock(SETTINGS_BLOCK_MACHINE, MachineSize.TINY);
     public static final MachineBlock BLOCK_MACHINE_SMALL = new MachineBlock(SETTINGS_BLOCK_MACHINE, MachineSize.SMALL);
@@ -66,7 +69,7 @@ public class CompactMachines implements ModInitializer {
 
     // Item group
     public static final ItemGroup CM_ITEMGROUP = FabricItemGroupBuilder.build(
-            new Identifier(MODID, ""),
+            new Identifier(MODID, "title"),
             () -> new ItemStack(BLOCK_MACHINE_NORMAL)
     );
     // Item settings
@@ -136,6 +139,8 @@ public class CompactMachines implements ModInitializer {
         Registry.register(Registry.ITEM, ID_WALL_UNBREAKABLE,   new BlockItem(Registry.BLOCK.get(ID_WALL_UNBREAKABLE), SETTINGS_ITEM));
         Registry.register(Registry.ITEM, ID_WALL,       new BlockItem(Registry.BLOCK.get(ID_WALL), SETTINGS_ITEM));
         Registry.register(Registry.ITEM, ID_PSD, ITEM_PSD);
+
+        LOGGER.info("CompactMachines initialized");
     }
 
 
@@ -163,4 +168,6 @@ public class CompactMachines implements ModInitializer {
     public static RoomManager getRoomManager() {
         return roomManager;
     }
+
+
 }

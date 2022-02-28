@@ -3,7 +3,11 @@ package us.dison.compactmachines.block.entity;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.Packet;
+import net.minecraft.network.listener.ClientPlayPacketListener;
+import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.Nullable;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.block.enums.MachineSize;
 
@@ -38,12 +42,23 @@ public class MachineBlockEntity extends BlockEntity {
 
     @Override
     protected void writeNbt(NbtCompound tag) {
-        if (this.machineID != -1) {
-            tag.putInt("number", this.machineID);
-            tag.putUuid("uuid", this.owner);
-        }
+        tag.putInt("number", this.machineID);
+
+        if (this.owner == null) setOwner(new UUID(0, 0));
+        tag.putUuid("uuid", this.owner);
 
         super.writeNbt(tag);
+    }
+
+    @Nullable
+    @Override
+    public Packet<ClientPlayPacketListener> toUpdatePacket() {
+        return BlockEntityUpdateS2CPacket.create(this);
+    }
+
+    @Override
+    public NbtCompound toInitialChunkDataNbt() {
+        return createNbt();
     }
 
     public int getMachineID() {

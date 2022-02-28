@@ -50,7 +50,7 @@
   "item.compactmachines.tunnels.item": "Предметный туннель",
   "item.compactmachines.tunnels.redstone_in": "Редстоуновый туннель (Вход)",
   "item.compactmachines.tunnels.redstone_out": "Редстоуновый туннель (Выход)",
-  "itemGroup.compactmachines": "Compact Machines",
+  "itemGroup.compactmachines.title": "Compact Machines",
   "jei.compactmachines.machines": "Machines are used to make pocket dimensions. Craft a machine and place it in world, then use a Personal Shrinking Device to go inside.",
   "jei.compactmachines.shrinking_device": "Use the Personal Shrinking Device (PSD) on a machine in order to enter a compact space. You can also right click it in the overworld for more info.",
   "message.compactmachines.cannot_enter": "Вы возитесь с персональным сжимающим устройством, но безрезультатно. Оно отказывается работать.",

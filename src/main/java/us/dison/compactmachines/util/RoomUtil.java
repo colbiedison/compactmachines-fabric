@@ -44,10 +44,9 @@ public abstract class RoomUtil {
     public static void setCube(World world, BlockPos corner1, BlockPos corner2, BlockState block) {
         for (BlockPos blockPos : BlockPos.iterate(corner1, corner2)) {
             if (!world.canSetBlock(blockPos)) {
-                System.err.println("Can't set block! "+blockPos.toShortString());
+                CompactMachines.LOGGER.error("Can't set block! "+blockPos.toShortString());
                 continue;
             }
-            System.out.println(blockPos);
             world.setBlockState(blockPos, block);
         }
     }
@@ -66,7 +65,7 @@ public abstract class RoomUtil {
     public static void generateRoom(World world, BlockPos centerPos, MachineSize machineSize, int id) {
         if (world.isClient()) return;
 
-        System.out.println("Generate room!");
+        CompactMachines.LOGGER.info("Generating a new room #"+id+" of size "+machineSize.getName()+" ["+machineSize.getSize()+"] at "+centerPos.toShortString());
 
         ChunkPos chunkPos = new ChunkPos(centerPos);
         ((ServerWorld) world).setChunkForced(chunkPos.x, chunkPos.z, true);
@@ -89,6 +88,7 @@ public abstract class RoomUtil {
         );
 
         ((ServerWorld) world).setChunkForced(chunkPos.x, chunkPos.z, false);
+        CompactMachines.LOGGER.info("Done generating room #"+id);
     }
 
 }
