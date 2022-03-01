@@ -27,10 +27,14 @@ import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.item.PSDItem;
 import us.dison.compactmachines.util.RoomUtil;
 
+import java.util.ArrayList;
+
 
 public class MachineBlock extends Block implements BlockEntityProvider {
 
     public final MachineSize size;
+
+    private int lastPlayerInsideWarning;
 
     public MachineBlock(Settings settings, MachineSize machineSize) {
         super(settings);
@@ -56,7 +60,7 @@ public class MachineBlock extends Block implements BlockEntityProvider {
                     blockEntity.setOwner(serverPlayer.getUuid());
                     blockEntity.markDirty();
                     BlockPos roomCenterPos = RoomUtil.getCenterPosByID(machineID);
-                    roomManager.addRoom(world.getRegistryKey().getValue(), serverPlayer.getUuidAsString(), pos, roomCenterPos, machineID);
+                    roomManager.addRoom(world.getRegistryKey().getValue(), serverPlayer.getUuidAsString(), pos, roomCenterPos, machineID, new ArrayList<>());
                     serverPlayer.sendMessage(new TranslatableText("message.compactmachines.generating_room"), true);
                     RoomUtil.generateRoom(CompactMachines.cmWorld, machineID, blockEntity.getSize());
                     serverPlayer.sendMessage(new TranslatableText("message.compactmachines.ready").formatted(Formatting.GREEN), true);
@@ -71,6 +75,7 @@ public class MachineBlock extends Block implements BlockEntityProvider {
                     bp = bp.add(0, -(size.getSize()/2d)+1, 0);
                     CompactMachines.LOGGER.info("Teleporting player "+player.getDisplayName().asString()+" into machine #"+blockEntity.getMachineID()+" at: "+bp.toShortString());
                     serverPlayer.teleport(CompactMachines.cmWorld, bp.getX()+0.5d, bp.getY(), bp.getZ()+0.5d, 0, 0);
+                    roomManager.addPlayer(id, serverPlayer.getUuidAsString());
                     return ActionResult.SUCCESS;
                 }
             } else {
@@ -146,6 +151,29 @@ public class MachineBlock extends Block implements BlockEntityProvider {
                 roomManager.updateMachinePosAndOwner(blockEntity.getMachineID(), world.getRegistryKey().getValue(), pos, placer.getUuidAsString());
             }
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
+        float original = super.calcBlockBreakingDelta(state, player, world, pos);
+        RoomManager roomManager = CompactMachines.getRoomManager();
+        // Don't let the machine be broken if there is a player inside
+        if (world.getBlockEntity(pos) instanceof MachineBlockEntity machineBlockEntity
+                && roomManager.getRoomByNumber(machineBlockEntity.getMachineID()).getPlayers().size() > 0
+        ) {
+            if (player instanceof ServerPlayerEntity serverPlayer) {
+                // Send warning message every 10 ticks
+                int now = serverPlayer.server.getTicks();
+                if (now >= lastPlayerInsideWarning+10) {
+                    serverPlayer.sendMessage(new TranslatableText("message.compactmachines.player_inside").formatted(Formatting.RED), true);
+                    lastPlayerInsideWarning = now;
+                }
+            }
+            return 0.0f;
+        }
+
+        return original;
     }
 
 }

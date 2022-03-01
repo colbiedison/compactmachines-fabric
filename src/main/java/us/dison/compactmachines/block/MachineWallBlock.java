@@ -41,17 +41,19 @@ public class MachineWallBlock extends Block implements BlockEntityProvider {
         if (player.getStackInHand(hand).getItem() instanceof PSDItem) {
             if (!world.isClient()) {
                 if (world == CompactMachines.cmWorld) {
+                    RoomManager roomManager = CompactMachines.getRoomManager();
                     ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
 
                     if (!(world.getBlockEntity(pos) instanceof MachineWallBlockEntity wall)) return ActionResult.FAIL;
                     if (world.getServer() == null) return ActionResult.FAIL;
 
-                    RoomManager.Room room = CompactMachines.getRoomManager().getRoomByNumber(wall.getParentID());
+                    RoomManager.Room room = roomManager.getRoomByNumber(wall.getParentID());
                     if (room == null) return ActionResult.FAIL;
                     ServerWorld machineWorld = world.getServer().getWorld(RegistryKey.of(Registry.WORLD_KEY, room.getWorld()));
                     BlockPos machinePos = room.getMachine();
                     CompactMachines.LOGGER.info("Teleporting player "+player.getDisplayName().asString()+" out of machine #"+room.getNumber()+" at: "+room.getCenter().toShortString());
                     serverPlayer.teleport(machineWorld, machinePos.getX(), machinePos.getY(), machinePos.getZ(), 0, 0);
+                    roomManager.rmPlayer(room.getNumber(), serverPlayer.getUuidAsString());
 
                     return ActionResult.SUCCESS;
                 }
