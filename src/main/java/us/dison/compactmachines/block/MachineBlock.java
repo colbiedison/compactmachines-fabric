@@ -11,7 +11,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
@@ -25,7 +25,6 @@ import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.block.entity.MachineBlockEntity;
 import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.item.PSDItem;
-import us.dison.compactmachines.util.PlayerUtil;
 import us.dison.compactmachines.util.RoomUtil;
 
 
@@ -58,14 +57,14 @@ public class MachineBlock extends Block implements BlockEntityProvider {
                     blockEntity.markDirty();
                     BlockPos roomCenterPos = RoomUtil.getCenterPosByID(machineID);
                     roomManager.addRoom(world.getRegistryKey().getValue(), serverPlayer.getUuidAsString(), pos, roomCenterPos, machineID);
-                    serverPlayer.sendMessage(new LiteralText("Generating a room for this machine..."), true);
+                    serverPlayer.sendMessage(new TranslatableText("message.compactmachines.generating_room"), true);
                     RoomUtil.generateRoom(CompactMachines.cmWorld, machineID, blockEntity.getSize());
-                    serverPlayer.sendMessage(new LiteralText("Ready").formatted(Formatting.GREEN), true);
+                    serverPlayer.sendMessage(new TranslatableText("message.compactmachines.ready").formatted(Formatting.GREEN), true);
                 } else {
                     int id = blockEntity.getMachineID();
                     if (!roomManager.roomExists(id)) {
                         CompactMachines.LOGGER.error("Player "+player.getDisplayName()+" attempted to enter a machine with invalid id! (#"+id+")");
-                        player.sendMessage(new LiteralText("ERROR: No room exists for this machine!").formatted(Formatting.RED), false);
+                        player.sendMessage(new TranslatableText("message.compactmachines.invalid_room").formatted(Formatting.RED), false);
                         return ActionResult.PASS;
                     }
                     BlockPos bp = RoomUtil.getCenterPosByID(id);

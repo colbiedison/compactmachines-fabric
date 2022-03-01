@@ -7,7 +7,7 @@ import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.registry.Registry;
 
@@ -36,11 +36,11 @@ public class CompactMachinesClient implements ClientModInitializer {
                     }
                 }
 
-                lines.add(1, new LiteralText("Owner: " + playerName).formatted(Formatting.GRAY));
-                lines.add(1, new LiteralText("ID: " + stack.getSubNbt("BlockEntityTag").getInt("number")).formatted(Formatting.GRAY));
+                lines.add(1, new TranslatableText("tooltip.compactmachines.machine.owner", playerName).formatted(Formatting.GRAY));
+                lines.add(1, new TranslatableText("tooltip.compactmachines.machine.id", stack.getSubNbt("BlockEntityTag").getInt("number")).formatted(Formatting.GRAY));
             } else
             if (Registry.ITEM.getId(stack.getItem()).equals(ID_WALL_UNBREAKABLE)) { // Unbreakable wall tooltip
-                lines.add(1, new LiteralText("Unbreakable").formatted(Formatting.RED));
+                lines.add(1, new TranslatableText("tooltip.compactmachines.details.solid_wall").formatted(Formatting.RED));
             }
         });
 
