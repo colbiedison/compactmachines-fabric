@@ -10,6 +10,7 @@ import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.registry.Registry;
+import us.dison.compactmachines.block.enums.MachineSize;
 
 import java.util.UUID;
 
@@ -25,19 +26,31 @@ public class CompactMachinesClient implements ClientModInitializer {
 
         // REGISTER machine tooltip callback
         ItemTooltipCallback.EVENT.register((stack, context, lines) -> {
-            if (Registry.ITEM.getId(stack.getItem()).toString().startsWith(MODID + ":machine_") && stack.getNbt() != null) { // Machine number tooltip
-                UUID owner = stack.getSubNbt("BlockEntityTag").getUuid("uuid");
-                String playerName = owner.toString();
-                ClientPlayNetworkHandler handler = MinecraftClient.getInstance().getNetworkHandler();
-                if (handler != null) {
-                    PlayerListEntry playerListEntry = handler.getPlayerListEntry(owner);
-                    if (playerListEntry != null) {
-                        playerName = playerListEntry.getProfile().getName();
-                    }
+
+            if (Registry.ITEM.getId(stack.getItem()).toString().startsWith(MODID + ":machine_")) { // Machine number tooltip
+                MachineSize machineSize = null;
+                String strSize = Registry.ITEM.getId(stack.getItem()).getPath().split("_")[1];
+                if (strSize != null) {
+                    machineSize = MachineSize.getFromSize(strSize);
                 }
 
-                lines.add(1, new TranslatableText("tooltip.compactmachines.machine.owner", playerName).formatted(Formatting.GRAY));
-                lines.add(1, new TranslatableText("tooltip.compactmachines.machine.id", stack.getSubNbt("BlockEntityTag").getInt("number")).formatted(Formatting.GRAY));
+                if (machineSize != null)
+                    lines.add(1, new TranslatableText("tooltip.compactmachines.machine.size", machineSize.getSize(), machineSize.getSize(), machineSize.getSize()).formatted(Formatting.GRAY));
+
+                if (stack.getNbt() != null) {
+                    UUID owner = stack.getSubNbt("BlockEntityTag").getUuid("uuid");
+                    String playerName = owner.toString();
+                    ClientPlayNetworkHandler handler = MinecraftClient.getInstance().getNetworkHandler();
+                    if (handler != null) {
+                        PlayerListEntry playerListEntry = handler.getPlayerListEntry(owner);
+                        if (playerListEntry != null) {
+                            playerName = playerListEntry.getProfile().getName();
+                        }
+                    }
+                    if (context.isAdvanced()) lines.add(1, new TranslatableText("tooltip.compactmachines.machine.owner", playerName).formatted(Formatting.GRAY));
+                    lines.add(1, new TranslatableText("tooltip.compactmachines.machine.id", stack.getSubNbt("BlockEntityTag").getInt("number")).formatted(Formatting.GRAY));
+                }
+
             } else
             if (Registry.ITEM.getId(stack.getItem()).equals(ID_WALL_UNBREAKABLE)) { // Unbreakable wall tooltip
                 lines.add(1, new TranslatableText("tooltip.compactmachines.details.solid_wall").formatted(Formatting.RED));

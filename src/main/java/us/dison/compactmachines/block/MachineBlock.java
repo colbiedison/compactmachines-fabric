@@ -67,7 +67,7 @@ public class MachineBlock extends Block implements BlockEntityProvider {
                 } else {
                     int id = blockEntity.getMachineID();
                     if (!roomManager.roomExists(id)) {
-                        CompactMachines.LOGGER.error("Player "+player.getDisplayName()+" attempted to enter a machine with invalid id! (#"+id+")");
+                        CompactMachines.LOGGER.error("Player "+player.getDisplayName().asString()+" attempted to enter a machine with invalid id! (#"+id+")");
                         player.sendMessage(new TranslatableText("message.compactmachines.invalid_room").formatted(Formatting.RED), false);
                         return ActionResult.PASS;
                     }
@@ -160,8 +160,8 @@ public class MachineBlock extends Block implements BlockEntityProvider {
         RoomManager roomManager = CompactMachines.getRoomManager();
         // Don't let the machine be broken if there is a player inside
         if (world.getBlockEntity(pos) instanceof MachineBlockEntity machineBlockEntity
-                && roomManager.getRoomByNumber(machineBlockEntity.getMachineID()).getPlayers().size() > 0
-        ) {
+                && roomManager.getRoomByNumber(machineBlockEntity.getMachineID()) != null) {
+            if (roomManager.getRoomByNumber(machineBlockEntity.getMachineID()).getPlayers().size() < 1) return original;
             if (player instanceof ServerPlayerEntity serverPlayer) {
                 // Send warning message every 10 ticks
                 int now = serverPlayer.server.getTicks();

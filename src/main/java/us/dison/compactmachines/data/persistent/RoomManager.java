@@ -75,6 +75,7 @@ public class RoomManager extends PersistentState {
 
     public void updateOwner(int id, String uuid) {
         Room oldRoom = getRoomByNumber(id);
+        if (oldRoom == null) return;
         Room newRoom = new Room(oldRoom.getWorld(), uuid, oldRoom.getMachine(), oldRoom.getCenter(), oldRoom.getNumber(), oldRoom.getPlayers());
         rooms.remove(oldRoom);
         rooms.add(newRoom);
@@ -82,6 +83,7 @@ public class RoomManager extends PersistentState {
 
     public void updateMachinePos(int id, Identifier world, BlockPos machine) {
         Room oldRoom = getRoomByNumber(id);
+        if (oldRoom == null) return;
         Room newRoom = new Room(world, oldRoom.getOwner(), machine, oldRoom.getCenter(), oldRoom.getNumber(), oldRoom.getPlayers());
         rooms.remove(oldRoom);
         rooms.add(newRoom);
@@ -89,6 +91,7 @@ public class RoomManager extends PersistentState {
 
     public void updateMachinePosAndOwner(int id, Identifier world, BlockPos machine, String uuid) {
         Room oldRoom = getRoomByNumber(id);
+        if (oldRoom == null) return;
         Room newRoom = new Room(world, uuid, machine, oldRoom.getCenter(), oldRoom.getNumber(), oldRoom.getPlayers());
         rooms.remove(oldRoom);
         rooms.add(newRoom);
@@ -96,6 +99,7 @@ public class RoomManager extends PersistentState {
 
     public void rmPlayer(int id, String player) {
         Room oldRoom = getRoomByNumber(id);
+        if (oldRoom == null) return;
         List<String> players = new ArrayList<String>(oldRoom.getPlayers());
         if (players.contains(player)) {
             players.remove(player);
@@ -107,6 +111,7 @@ public class RoomManager extends PersistentState {
 
     public void addPlayer(int id, String player) {
         Room oldRoom = getRoomByNumber(id);
+        if (oldRoom == null) return;
         List<String> players = new ArrayList<String>(oldRoom.getPlayers());
         if (!players.contains(player)) {
             players.add(player);
@@ -118,6 +123,7 @@ public class RoomManager extends PersistentState {
 
     public void updatePlayers(int id, List<String> players) {
         Room oldRoom = getRoomByNumber(id);
+        if (oldRoom == null) return;
         Room newRoom = new Room(oldRoom.getWorld(), oldRoom.getOwner(), oldRoom.getMachine(), oldRoom.getCenter(), oldRoom.getNumber(), players);
         rooms.remove(oldRoom);
         rooms.add(newRoom);
