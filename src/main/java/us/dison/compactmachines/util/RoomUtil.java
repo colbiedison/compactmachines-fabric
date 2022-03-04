@@ -108,7 +108,7 @@ public abstract class RoomUtil {
                 id
         );
 
-        ((ServerWorld) world).setChunkForced(chunkPos.x, chunkPos.z, false);
+//        ((ServerWorld) world).setChunkForced(chunkPos.x, chunkPos.z, false);
         CompactMachines.LOGGER.info("Done generating room #"+id);
     }
 
