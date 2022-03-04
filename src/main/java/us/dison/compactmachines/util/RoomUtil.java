@@ -4,6 +4,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
@@ -42,6 +43,13 @@ public abstract class RoomUtil {
     }
 
     public static void setCube(World world, BlockPos corner1, BlockPos corner2, BlockState block) {
+        setCube(world, new Box(corner1, corner2), block);
+    }
+
+    public static void setCube(World world, Box box, BlockState block) {
+        BlockPos corner1 = new BlockPos(box.maxX, box.maxY, box.maxZ);
+        BlockPos corner2 = new BlockPos(box.minX, box.minY, box.minZ);
+
         for (BlockPos blockPos : BlockPos.iterate(corner1, corner2)) {
             if (!world.canSetBlock(blockPos)) {
                 CompactMachines.LOGGER.error("Can't set block! "+blockPos.toShortString());
@@ -52,10 +60,24 @@ public abstract class RoomUtil {
     }
 
     public static void setWallNBT(World world, BlockPos corner1, BlockPos corner2, int id) {
+        setWallNBT(world, new Box(corner1, corner2), id);
+    }
+
+    public static void setWallNBT(World world, Box box, int id) {
+        BlockPos corner1 = new BlockPos(box.maxX, box.maxY, box.maxZ);
+        BlockPos corner2 = new BlockPos(box.minX, box.minY, box.minZ);
+
         for (BlockPos blockPos : BlockPos.iterate(corner1, corner2)) {
             if (world.getBlockEntity(blockPos) instanceof MachineWallBlockEntity wall)
                 wall.setParentID(id);
         }
+    }
+
+    public static Box getBox(BlockPos centerPos, int size) {
+        int s = size/2 +1;
+        BlockPos corner1 = centerPos.add(s, s, s);
+        BlockPos corner2 = centerPos.add(-s, -s, -s);
+        return new Box(corner1, corner2);
     }
 
     public static void generateRoom(World world, int id, MachineSize machineSize) {
@@ -70,20 +92,19 @@ public abstract class RoomUtil {
         ChunkPos chunkPos = new ChunkPos(centerPos);
         ((ServerWorld) world).setChunkForced(chunkPos.x, chunkPos.z, true);
 
-        int s = machineSize.getSize()/2 +1;
+        Box box = getBox(centerPos, machineSize.getSize());
         setCube(world, // Place the wall blocks
-                centerPos.add(s, s, s),
-                centerPos.add(-s, -s, -s),
+                box,
                 CompactMachines.BLOCK_WALL_UNBREAKABLE.getDefaultState()
         );
+
+        Box inner = getBox(centerPos, machineSize.getSize()-2);
         setCube(world, // Replace the inside with air
-                centerPos.add(s-1, s-1, s-1),
-                centerPos.add(-s+1, -s+1, -s+1),
+                inner,
                 Blocks.AIR.getDefaultState()
         );
         setWallNBT(world, // Set the parentID of the wall blocks
-                centerPos.add(s, s, s),
-                centerPos.add(-s, -s, -s),
+                box,
                 id
         );
 

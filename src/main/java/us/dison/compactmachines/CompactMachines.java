@@ -113,7 +113,13 @@ public class CompactMachines implements ModInitializer {
 
         // REGISTER BlockEntityType
         MACHINE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, MODID + ":machine_block_entity", FabricBlockEntityTypeBuilder.create(
-                MachineBlockEntity::new, BLOCK_MACHINE_TINY
+                MachineBlockEntity::new,
+                BLOCK_MACHINE_TINY,
+                BLOCK_MACHINE_SMALL,
+                BLOCK_MACHINE_NORMAL,
+                BLOCK_MACHINE_LARGE,
+                BLOCK_MACHINE_GIANT,
+                BLOCK_MACHINE_MAXIMUM
         ).build(null));
         MACHINE_WALL_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, MODID + "machine_wall_block_entity", FabricBlockEntityTypeBuilder.create(
                 MachineWallBlockEntity::new, BLOCK_WALL_UNBREAKABLE

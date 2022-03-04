@@ -1,9 +1,9 @@
 package us.dison.compactmachines.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockEntityProvider;
-import net.minecraft.block.BlockState;
+import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityTicker;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.ItemEntity;
@@ -30,7 +30,7 @@ import us.dison.compactmachines.util.RoomUtil;
 import java.util.ArrayList;
 
 
-public class MachineBlock extends Block implements BlockEntityProvider {
+public class MachineBlock extends BlockWithEntity {
 
     public final MachineSize size;
 
@@ -54,17 +54,16 @@ public class MachineBlock extends Block implements BlockEntityProvider {
 
                 RoomManager roomManager = CompactMachines.getRoomManager();
 
-                if (blockEntity.getMachineID() == -1) {
+                if (blockEntity.getMachineID() == -1) { // make new room
                     int machineID = RoomUtil.nextID(roomManager);
                     blockEntity.setMachineID(machineID);
                     blockEntity.setOwner(serverPlayer.getUuid());
-                    blockEntity.markDirty();
                     BlockPos roomCenterPos = RoomUtil.getCenterPosByID(machineID);
                     roomManager.addRoom(world.getRegistryKey().getValue(), serverPlayer.getUuidAsString(), pos, roomCenterPos, machineID, new ArrayList<>());
                     serverPlayer.sendMessage(new TranslatableText("message.compactmachines.generating_room"), true);
                     RoomUtil.generateRoom(CompactMachines.cmWorld, machineID, blockEntity.getSize());
                     serverPlayer.sendMessage(new TranslatableText("message.compactmachines.ready").formatted(Formatting.GREEN), true);
-                } else {
+                } else { // teleport player into room
                     int id = blockEntity.getMachineID();
                     if (!roomManager.roomExists(id)) {
                         CompactMachines.LOGGER.error("Player "+player.getDisplayName().asString()+" attempted to enter a machine with invalid id! (#"+id+")");
@@ -151,6 +150,17 @@ public class MachineBlock extends Block implements BlockEntityProvider {
                 roomManager.updateMachinePosAndOwner(blockEntity.getMachineID(), world.getRegistryKey().getValue(), pos, placer.getUuidAsString());
             }
         }
+    }
+
+    @Override
+    public BlockRenderType getRenderType(BlockState state) {
+        return BlockRenderType.MODEL;
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
+        return checkType(type, CompactMachines.MACHINE_BLOCK_ENTITY, MachineBlockEntity::tick);
     }
 
     @SuppressWarnings("deprecation")
