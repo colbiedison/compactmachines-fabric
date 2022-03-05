@@ -1,9 +1,9 @@
 package us.dison.compactmachines.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockEntityProvider;
-import net.minecraft.block.BlockState;
+import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityTicker;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.context.LootContext;
@@ -19,6 +19,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import us.dison.compactmachines.CompactMachines;
+import us.dison.compactmachines.block.entity.MachineBlockEntity;
 import us.dison.compactmachines.block.entity.MachineWallBlockEntity;
 import us.dison.compactmachines.data.persistent.Room;
 import us.dison.compactmachines.data.persistent.RoomManager;
@@ -26,7 +27,7 @@ import us.dison.compactmachines.item.PSDItem;
 
 import java.util.List;
 
-public class MachineWallBlock extends Block implements BlockEntityProvider {
+public class MachineWallBlock extends BlockWithEntity {
 
     private final boolean breakable;
 
@@ -89,13 +90,24 @@ public class MachineWallBlock extends Block implements BlockEntityProvider {
         return super.getDroppedStacks(state, builder);
     }
 
-    public boolean isBreakable() {
-        return breakable;
+    @Override
+    public BlockRenderType getRenderType(BlockState state) {
+        return BlockRenderType.MODEL;
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
+        return checkType(type, CompactMachines.MACHINE_WALL_BLOCK_ENTITY, MachineWallBlockEntity::tick);
     }
 
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
         return new MachineWallBlockEntity(pos, state, -1);
+    }
+
+    public boolean isBreakable() {
+        return breakable;
     }
 }

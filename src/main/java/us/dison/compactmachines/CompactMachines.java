@@ -27,7 +27,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import us.dison.compactmachines.block.MachineBlock;
 import us.dison.compactmachines.block.MachineWallBlock;
+import us.dison.compactmachines.block.TunnelWallBlock;
 import us.dison.compactmachines.block.entity.MachineWallBlockEntity;
+import us.dison.compactmachines.block.entity.TunnelWallBlockEntity;
 import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.block.entity.MachineBlockEntity;
 import us.dison.compactmachines.data.persistent.RoomManager;
@@ -52,6 +54,7 @@ public class CompactMachines implements ModInitializer {
     public static final Identifier ID_MAXIMUM = new Identifier(MODID, "machine_maximum");
     public static final Identifier ID_WALL_UNBREAKABLE = new Identifier(MODID, "solid_wall");
     public static final Identifier ID_WALL = new Identifier(MODID, "wall");
+    public static final Identifier ID_WALL_TUNNEL = new Identifier(MODID, "tunnel_wall");
     public static final Identifier ID_PSD = new Identifier(MODID, "personal_shrinking_device");
 
     // Block settings
@@ -66,6 +69,7 @@ public class CompactMachines implements ModInitializer {
     public static final MachineBlock BLOCK_MACHINE_MAXIMUM = new MachineBlock(SETTINGS_BLOCK_MACHINE, MachineSize.MAXIMUM);
     public static final MachineWallBlock BLOCK_WALL_UNBREAKABLE = new MachineWallBlock(SETTINGS_BLOCK_WALL, false);
     public static final MachineWallBlock BLOCK_WALL = new MachineWallBlock(SETTINGS_BLOCK_WALL, true);
+    public static final TunnelWallBlock BLOCK_WALL_TUNNEL = new TunnelWallBlock(SETTINGS_BLOCK_WALL, false);
 
     // Item group
     public static final ItemGroup CM_ITEMGROUP = FabricItemGroupBuilder.build(
@@ -80,6 +84,7 @@ public class CompactMachines implements ModInitializer {
     // BlockEntityType
     public static BlockEntityType<MachineBlockEntity> MACHINE_BLOCK_ENTITY;
     public static BlockEntityType<MachineWallBlockEntity> MACHINE_WALL_BLOCK_ENTITY;
+    public static BlockEntityType<TunnelWallBlockEntity> TUNNEL_WALL_BLOCK_ENTITY;
 
     // Room manager (persistent data storage)
     private static RoomManager roomManager = null;
@@ -124,6 +129,9 @@ public class CompactMachines implements ModInitializer {
         MACHINE_WALL_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, MODID + "machine_wall_block_entity", FabricBlockEntityTypeBuilder.create(
                 MachineWallBlockEntity::new, BLOCK_WALL_UNBREAKABLE
         ).build(null));
+        TUNNEL_WALL_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, MODID + "tunnel_wall_block_entity", FabricBlockEntityTypeBuilder.create(
+                TunnelWallBlockEntity::new, BLOCK_WALL_TUNNEL
+        ).build(null));
 
         // REGISTER Block
         Registry.register(Registry.BLOCK, ID_TINY, BLOCK_MACHINE_TINY);
@@ -134,6 +142,7 @@ public class CompactMachines implements ModInitializer {
         Registry.register(Registry.BLOCK, ID_MAXIMUM, BLOCK_MACHINE_MAXIMUM);
         Registry.register(Registry.BLOCK, ID_WALL_UNBREAKABLE, BLOCK_WALL_UNBREAKABLE);
         Registry.register(Registry.BLOCK, ID_WALL, BLOCK_WALL);
+        Registry.register(Registry.BLOCK, ID_WALL_TUNNEL, BLOCK_WALL_TUNNEL);
 
         // REGISTER Item
         Registry.register(Registry.ITEM, ID_TINY,       new BlockItem(Registry.BLOCK.get(ID_TINY), SETTINGS_ITEM));
@@ -144,6 +153,7 @@ public class CompactMachines implements ModInitializer {
         Registry.register(Registry.ITEM, ID_MAXIMUM,    new BlockItem(Registry.BLOCK.get(ID_MAXIMUM), SETTINGS_ITEM));
         Registry.register(Registry.ITEM, ID_WALL_UNBREAKABLE,   new BlockItem(Registry.BLOCK.get(ID_WALL_UNBREAKABLE), SETTINGS_ITEM));
         Registry.register(Registry.ITEM, ID_WALL,       new BlockItem(Registry.BLOCK.get(ID_WALL), SETTINGS_ITEM));
+        Registry.register(Registry.ITEM, ID_WALL_TUNNEL,       new BlockItem(Registry.BLOCK.get(ID_WALL_TUNNEL), SETTINGS_ITEM));
         Registry.register(Registry.ITEM, ID_PSD, ITEM_PSD);
 
         LOGGER.info("CompactMachines initialized");

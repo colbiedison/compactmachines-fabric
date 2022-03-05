@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
 
 import java.util.List;
 
@@ -17,7 +18,8 @@ public class Room {
                             BlockPos.CODEC.fieldOf("center").forGetter(Room::getCenter),
                             BlockPos.CODEC.fieldOf("spawnPos").forGetter(Room::getSpawnPos),
                             Codec.INT.fieldOf("number").forGetter(Room::getNumber),
-                            Codec.list(Codec.STRING).fieldOf("players").forGetter(Room::getPlayers)
+                            Codec.list(Codec.STRING).fieldOf("players").forGetter(Room::getPlayers),
+                            Codec.list(Tunnel.CODEC).fieldOf("tunnels").forGetter(Room::getTunnels)
                     )
                     .apply(instance, Room::new));
 
@@ -28,9 +30,10 @@ public class Room {
     private final BlockPos spawnPos;
     private final int number;
     private final List<String> players;
+    private final List<Tunnel> tunnels;
 
 
-    public Room(Identifier world, String owner, BlockPos machine, BlockPos center, BlockPos spawnPos, int number, List<String> players) {
+    public Room(Identifier world, String owner, BlockPos machine, BlockPos center, BlockPos spawnPos, int number, List<String> players, List<Tunnel> tunnels) {
         this.world = world;
         this.owner = owner;
         this.machine = machine;
@@ -38,6 +41,7 @@ public class Room {
         this.spawnPos = spawnPos;
         this.number = number;
         this.players = players;
+        this.tunnels = tunnels;
     }
 
 
@@ -67,5 +71,9 @@ public class Room {
 
     public List<String> getPlayers() {
         return players;
+    }
+
+    public List<Tunnel> getTunnels() {
+        return tunnels;
     }
 }

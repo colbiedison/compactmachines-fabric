@@ -4,6 +4,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import us.dison.compactmachines.CompactMachines;
 
 public class MachineWallBlockEntity extends BlockEntity {
@@ -32,6 +33,10 @@ public class MachineWallBlockEntity extends BlockEntity {
         tag.putInt("parent", this.parentID);
 
         super.writeNbt(tag);
+    }
+
+    public static void tick(World world, BlockPos blockPos, BlockState blockState, MachineWallBlockEntity wallBlockEntity) {
+
     }
 
     public int getParentID() {
