@@ -20,6 +20,7 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.block.entity.MachineWallBlockEntity;
+import us.dison.compactmachines.data.persistent.Room;
 import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.item.PSDItem;
 
@@ -47,7 +48,7 @@ public class MachineWallBlock extends Block implements BlockEntityProvider {
                     if (!(world.getBlockEntity(pos) instanceof MachineWallBlockEntity wall)) return ActionResult.FAIL;
                     if (world.getServer() == null) return ActionResult.FAIL;
 
-                    RoomManager.Room room = roomManager.getRoomByNumber(wall.getParentID());
+                    Room room = roomManager.getRoomByNumber(wall.getParentID());
                     if (room == null) return ActionResult.FAIL;
                     ServerWorld machineWorld = world.getServer().getWorld(RegistryKey.of(Registry.WORLD_KEY, room.getWorld()));
                     BlockPos machinePos = room.getMachine();

@@ -15,6 +15,7 @@ import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.block.entity.MachineWallBlockEntity;
+import us.dison.compactmachines.data.persistent.Room;
 import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.gui.PSDScreen;
 
@@ -48,7 +49,7 @@ public class PSDItem extends Item {
             if (!(blockEntity instanceof MachineWallBlockEntity wallBlockEntity)) return ActionResult.FAIL;
 
             RoomManager roomManager = CompactMachines.getRoomManager();
-            RoomManager.Room room = roomManager.getRoomByNumber(wallBlockEntity.getParentID());
+            Room room = roomManager.getRoomByNumber(wallBlockEntity.getParentID());
             if (room == null) return ActionResult.FAIL;
 
             ServerPlayerEntity serverPlayer = (ServerPlayerEntity) context.getPlayer();

@@ -13,6 +13,7 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.block.enums.MachineSize;
+import us.dison.compactmachines.data.persistent.Room;
 import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.util.RoomUtil;
 
@@ -47,7 +48,7 @@ public class MachineBlockEntity extends BlockEntity {
         Box box = RoomUtil.getBox(RoomUtil.getCenterPosByID(machineBlock.getMachineID()), machineBlock.getSize().getSize());
         List<ServerPlayerEntity> players = CompactMachines.cmWorld.getPlayers();
         RoomManager roomManager = CompactMachines.getRoomManager();
-        RoomManager.Room room = roomManager.getRoomByNumber(machineBlock.getMachineID());
+        Room room = roomManager.getRoomByNumber(machineBlock.getMachineID());
         if (players.size() > 0) {
             List<ServerPlayerEntity> playersInMachine = new ArrayList<>();
             players.forEach(player -> {

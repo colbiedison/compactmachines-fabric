@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.block.entity.MachineBlockEntity;
+import us.dison.compactmachines.data.persistent.Room;
 import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.item.PSDItem;
 import us.dison.compactmachines.util.RoomUtil;
@@ -66,7 +67,7 @@ public class MachineBlock extends BlockWithEntity {
                     serverPlayer.sendMessage(new TranslatableText("message.compactmachines.ready").formatted(Formatting.GREEN), true);
                 } else { // teleport player into room
                     int id = blockEntity.getMachineID();
-                    RoomManager.Room room = roomManager.getRoomByNumber(id);
+                    Room room = roomManager.getRoomByNumber(id);
                     if (room == null) {
                         CompactMachines.LOGGER.error("Player "+player.getDisplayName().asString()+" attempted to enter a machine with invalid id! (#"+id+")");
                         player.sendMessage(new TranslatableText("message.compactmachines.invalid_room").formatted(Formatting.RED), false);
