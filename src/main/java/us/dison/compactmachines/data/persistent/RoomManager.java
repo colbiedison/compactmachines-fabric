@@ -64,10 +64,10 @@ public class RoomManager extends PersistentState {
 
     }
 
-    public void addRoom(Identifier world, String owner, BlockPos machine, BlockPos center, int number, List<String> players) {
+    public void addRoom(Identifier world, String owner, BlockPos machine, BlockPos center, BlockPos spawnPos, int number, List<String> players) {
         Validate.isTrue(!roomExists(number), "Room already exists with number: "+number);
         Validate.isTrue(!roomExists(machine), "Room already exists for machine at: "+machine.toShortString()+"; number: "+number);
-        Room room = new Room(world, owner, machine, center, number, players);
+        Room room = new Room(world, owner, machine, center, spawnPos, number, players);
         rooms.add(room);
 
         markDirty();
@@ -76,7 +76,7 @@ public class RoomManager extends PersistentState {
     public void updateOwner(int id, String uuid) {
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
-        Room newRoom = new Room(oldRoom.getWorld(), uuid, oldRoom.getMachine(), oldRoom.getCenter(), oldRoom.getNumber(), oldRoom.getPlayers());
+        Room newRoom = new Room(oldRoom.getWorld(), uuid, oldRoom.getMachine(), oldRoom.getCenter(), oldRoom.getSpawnPos(), oldRoom.getNumber(), oldRoom.getPlayers());
         rooms.remove(oldRoom);
         rooms.add(newRoom);
     }
@@ -84,7 +84,7 @@ public class RoomManager extends PersistentState {
     public void updateMachinePos(int id, Identifier world, BlockPos machine) {
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
-        Room newRoom = new Room(world, oldRoom.getOwner(), machine, oldRoom.getCenter(), oldRoom.getNumber(), oldRoom.getPlayers());
+        Room newRoom = new Room(world, oldRoom.getOwner(), machine, oldRoom.getCenter(), oldRoom.getSpawnPos(), oldRoom.getNumber(), oldRoom.getPlayers());
         rooms.remove(oldRoom);
         rooms.add(newRoom);
     }
@@ -92,7 +92,7 @@ public class RoomManager extends PersistentState {
     public void updateMachinePosAndOwner(int id, Identifier world, BlockPos machine, String uuid) {
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
-        Room newRoom = new Room(world, uuid, machine, oldRoom.getCenter(), oldRoom.getNumber(), oldRoom.getPlayers());
+        Room newRoom = new Room(world, uuid, machine, oldRoom.getCenter(), oldRoom.getSpawnPos(), oldRoom.getNumber(), oldRoom.getPlayers());
         rooms.remove(oldRoom);
         rooms.add(newRoom);
     }
@@ -124,7 +124,15 @@ public class RoomManager extends PersistentState {
     public void updatePlayers(int id, List<String> players) {
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
-        Room newRoom = new Room(oldRoom.getWorld(), oldRoom.getOwner(), oldRoom.getMachine(), oldRoom.getCenter(), oldRoom.getNumber(), players);
+        Room newRoom = new Room(oldRoom.getWorld(), oldRoom.getOwner(), oldRoom.getMachine(), oldRoom.getCenter(), oldRoom.getSpawnPos(), oldRoom.getNumber(), players);
+        rooms.remove(oldRoom);
+        rooms.add(newRoom);
+    }
+
+    public void updateSpawnPos(int id, BlockPos pos) {
+        Room oldRoom = getRoomByNumber(id);
+        if (oldRoom == null) return;
+        Room newRoom = new Room(oldRoom.getWorld(), oldRoom.getOwner(), oldRoom.getMachine(), oldRoom.getCenter(), pos, oldRoom.getNumber(), oldRoom.getPlayers());
         rooms.remove(oldRoom);
         rooms.add(newRoom);
     }
@@ -160,6 +168,7 @@ public class RoomManager extends PersistentState {
                         Codec.STRING.fieldOf("owner").forGetter(Room::getOwner),
                         BlockPos.CODEC.fieldOf("machine").forGetter(Room::getMachine),
                         BlockPos.CODEC.fieldOf("center").forGetter(Room::getCenter),
+                        BlockPos.CODEC.fieldOf("spawnPos").forGetter(Room::getSpawnPos),
                         Codec.INT.fieldOf("number").forGetter(Room::getNumber),
                         Codec.list(Codec.STRING).fieldOf("players").forGetter(Room::getPlayers)
                 )
@@ -169,15 +178,17 @@ public class RoomManager extends PersistentState {
         private final String owner;
         private final BlockPos machine;
         private final BlockPos center;
+        private final BlockPos spawnPos;
         private final int number;
         private final List<String> players;
 
 
-        public Room(Identifier world, String owner, BlockPos machine, BlockPos center, int number, List<String> players) {
+        public Room(Identifier world, String owner, BlockPos machine, BlockPos center, BlockPos spawnPos, int number, List<String> players) {
             this.world = world;
             this.owner = owner;
             this.machine = machine;
             this.center = center;
+            this.spawnPos = spawnPos;
             this.number = number;
             this.players = players;
         }
@@ -197,6 +208,10 @@ public class RoomManager extends PersistentState {
 
         public BlockPos getCenter() {
             return center;
+        }
+
+        public BlockPos getSpawnPos() {
+            return spawnPos;
         }
 
         public int getNumber() {

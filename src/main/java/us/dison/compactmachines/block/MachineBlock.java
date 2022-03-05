@@ -59,21 +59,22 @@ public class MachineBlock extends BlockWithEntity {
                     blockEntity.setMachineID(machineID);
                     blockEntity.setOwner(serverPlayer.getUuid());
                     BlockPos roomCenterPos = RoomUtil.getCenterPosByID(machineID);
-                    roomManager.addRoom(world.getRegistryKey().getValue(), serverPlayer.getUuidAsString(), pos, roomCenterPos, machineID, new ArrayList<>());
+                    BlockPos spawnPos = roomCenterPos.add(0, -(size.getSize()/2d)+1, 0);
+                    roomManager.addRoom(world.getRegistryKey().getValue(), serverPlayer.getUuidAsString(), pos, roomCenterPos, spawnPos, machineID, new ArrayList<>());
                     serverPlayer.sendMessage(new TranslatableText("message.compactmachines.generating_room"), true);
                     RoomUtil.generateRoom(CompactMachines.cmWorld, machineID, blockEntity.getSize());
                     serverPlayer.sendMessage(new TranslatableText("message.compactmachines.ready").formatted(Formatting.GREEN), true);
                 } else { // teleport player into room
                     int id = blockEntity.getMachineID();
-                    if (!roomManager.roomExists(id)) {
+                    RoomManager.Room room = roomManager.getRoomByNumber(id);
+                    if (room == null) {
                         CompactMachines.LOGGER.error("Player "+player.getDisplayName().asString()+" attempted to enter a machine with invalid id! (#"+id+")");
                         player.sendMessage(new TranslatableText("message.compactmachines.invalid_room").formatted(Formatting.RED), false);
                         return ActionResult.PASS;
                     }
-                    BlockPos bp = RoomUtil.getCenterPosByID(id);
-                    bp = bp.add(0, -(size.getSize()/2d)+1, 0);
-                    CompactMachines.LOGGER.info("Teleporting player "+player.getDisplayName().asString()+" into machine #"+blockEntity.getMachineID()+" at: "+bp.toShortString());
-                    serverPlayer.teleport(CompactMachines.cmWorld, bp.getX()+0.5d, bp.getY(), bp.getZ()+0.5d, 0, 0);
+                    BlockPos spawnPos = room.getSpawnPos();
+                    CompactMachines.LOGGER.info("Teleporting player "+player.getDisplayName().asString()+" into machine #"+blockEntity.getMachineID()+" at: "+spawnPos.toShortString());
+                    serverPlayer.teleport(CompactMachines.cmWorld, spawnPos.getX()+0.5d, spawnPos.getY()+1d, spawnPos.getZ()+0.5d, 0, 0);
                     roomManager.addPlayer(id, serverPlayer.getUuidAsString());
                     return ActionResult.SUCCESS;
                 }
