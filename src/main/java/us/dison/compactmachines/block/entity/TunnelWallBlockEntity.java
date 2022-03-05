@@ -1,11 +1,9 @@
 package us.dison.compactmachines.block.entity;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 
 public class TunnelWallBlockEntity extends MachineWallBlockEntity {
 
