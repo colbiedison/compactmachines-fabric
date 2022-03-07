@@ -49,6 +49,7 @@ public class MachineBlockEntity extends BlockEntity {
         List<ServerPlayerEntity> players = CompactMachines.cmWorld.getPlayers();
         RoomManager roomManager = CompactMachines.getRoomManager();
         Room room = roomManager.getRoomByNumber(machineBlock.getMachineID());
+        if (room == null) return;
         if (players.size() > 0) {
             List<ServerPlayerEntity> playersInMachine = new ArrayList<>();
             players.forEach(player -> {

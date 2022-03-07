@@ -48,10 +48,15 @@ public class MachineBlock extends BlockWithEntity {
         super.onUse(state, world, pos, player, hand, hit);
         if (!world.isClient()) {
 
-            if (!(world.getBlockEntity(pos) instanceof MachineBlockEntity blockEntity) || world == CompactMachines.cmWorld) return ActionResult.PASS;
+
+            if (!(world.getBlockEntity(pos) instanceof MachineBlockEntity blockEntity)) return ActionResult.PASS;
             if (!(player instanceof ServerPlayerEntity serverPlayer)) return ActionResult.PASS;
 
             if (serverPlayer.getStackInHand(hand).getItem() instanceof PSDItem) {
+                if (world == CompactMachines.cmWorld) {
+                    serverPlayer.sendMessage(new TranslatableText("message.compactmachines.cannot_enter"), false);
+                    return ActionResult.PASS;
+                }
 
                 RoomManager roomManager = CompactMachines.getRoomManager();
 
@@ -118,8 +123,9 @@ public class MachineBlock extends BlockWithEntity {
         if (!world.isClient()) {
             if (blockEntity.getMachineID() == -1 && player.isCreative()) return;
             ItemStack itemStack = this.asItem().getDefaultStack();
-            blockEntity.setStackNbt(itemStack);
             ItemEntity itemEntity = new ItemEntity(world, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, itemStack);
+            if (blockEntity.getMachineID() != -1)
+                blockEntity.setStackNbt(itemStack);
             world.spawnEntity(itemEntity);
         }
     }
