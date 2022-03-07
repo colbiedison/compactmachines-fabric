@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "EBE",
+    " I "
+  ],
+  "key": {
+    "P": {
+      "tag": "c:glass_panes"
+    },
+    "E":{
+      "item": "minecraft:ender_eye"
+    },
+    "B": {
+      "item": "minecraft:book"
+    },
+    "I": {
+      "tag": "c:iron_ingots"
+    }
+  },
+  "result": {
+    "item": "compactmachines:personal_shrinking_device",
+    "count": 1
+  }
+}
