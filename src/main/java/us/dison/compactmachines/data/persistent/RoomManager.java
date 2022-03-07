@@ -78,6 +78,7 @@ public class RoomManager extends PersistentState {
         Room newRoom = new Room(oldRoom.getWorld(), uuid, oldRoom.getMachine(), oldRoom.getCenter(), oldRoom.getSpawnPos(), oldRoom.getNumber(), oldRoom.getPlayers());
         rooms.remove(oldRoom);
         rooms.add(newRoom);
+        markDirty();
     }
 
     public void updateMachinePos(int id, Identifier world, BlockPos machine) {
@@ -86,6 +87,7 @@ public class RoomManager extends PersistentState {
         Room newRoom = new Room(world, oldRoom.getOwner(), machine, oldRoom.getCenter(), oldRoom.getSpawnPos(), oldRoom.getNumber(), oldRoom.getPlayers());
         rooms.remove(oldRoom);
         rooms.add(newRoom);
+        markDirty();
     }
 
     public void updateMachinePosAndOwner(int id, Identifier world, BlockPos machine, String uuid) {
@@ -94,6 +96,7 @@ public class RoomManager extends PersistentState {
         Room newRoom = new Room(world, uuid, machine, oldRoom.getCenter(), oldRoom.getSpawnPos(), oldRoom.getNumber(), oldRoom.getPlayers());
         rooms.remove(oldRoom);
         rooms.add(newRoom);
+        markDirty();
     }
 
     public void rmPlayer(int id, String player) {
@@ -126,6 +129,7 @@ public class RoomManager extends PersistentState {
         Room newRoom = new Room(oldRoom.getWorld(), oldRoom.getOwner(), oldRoom.getMachine(), oldRoom.getCenter(), oldRoom.getSpawnPos(), oldRoom.getNumber(), players);
         rooms.remove(oldRoom);
         rooms.add(newRoom);
+        markDirty();
     }
 
     public void updateSpawnPos(int id, BlockPos pos) {
@@ -134,6 +138,7 @@ public class RoomManager extends PersistentState {
         Room newRoom = new Room(oldRoom.getWorld(), oldRoom.getOwner(), oldRoom.getMachine(), oldRoom.getCenter(), pos, oldRoom.getNumber(), oldRoom.getPlayers());
         rooms.remove(oldRoom);
         rooms.add(newRoom);
+        markDirty();
     }
 
     public boolean roomExists(int number) {
