@@ -2,7 +2,6 @@ package us.dison.compactmachines.block.enums;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.util.StringIdentifiable;
-import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
 
 import java.util.Objects;
 

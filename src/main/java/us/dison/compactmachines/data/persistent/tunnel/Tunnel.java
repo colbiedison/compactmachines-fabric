@@ -29,6 +29,13 @@ public class Tunnel {
         this.isConnected = isConnected;
     }
 
+    @Override
+    public String toString() {
+        return String.format("Tunnel { pos: %s, face: %s, type: %s, isConnected: %s }",
+                pos.toString(), face.asString(), type.asString(), isConnected ? "true" : "false"
+        );
+    }
+
     public BlockPos getPos() {
         return pos;
     }

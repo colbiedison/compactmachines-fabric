@@ -33,7 +33,6 @@ import us.dison.compactmachines.block.entity.TunnelWallBlockEntity;
 import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.block.entity.MachineBlockEntity;
 import us.dison.compactmachines.data.persistent.RoomManager;
-import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
 import us.dison.compactmachines.item.PSDItem;
 import us.dison.compactmachines.item.TunnelItem;
 

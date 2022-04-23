@@ -7,13 +7,11 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
 import org.apache.commons.lang3.Validate;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
-import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -147,18 +145,24 @@ public class RoomManager extends PersistentState {
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
         List<Tunnel> tunnels = new ArrayList<Tunnel>(oldRoom.getTunnels());
+        tunnels.forEach(tunnel1 -> {
+            System.out.println(tunnel1.toString());
+        });
+        System.out.println(tunnel.toString());
         if (tunnels.contains(tunnel)) {
             tunnels.remove(tunnel);
             updateTunnels(id, tunnels);
             return;
         }
-        CompactMachines.LOGGER.warn("Attempted to add tunnel to machine #"+id+" but the machine already has the tunnel");
+        CompactMachines.LOGGER.warn("Attempted to remove tunnel from machine #"+id+" but the machine already has the tunnel");
     }
 
     public void addTunnel(int id, Tunnel tunnel) {
+        System.out.println(tunnel.toString());
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
         List<Tunnel> tunnels = new ArrayList<Tunnel>(oldRoom.getTunnels());
+//        List<Tunnel> tunnels = new ArrayList<Tunnel>();
         if (!tunnels.contains(tunnel)) {
             tunnels.add(tunnel);
             updateTunnels(id, tunnels);
@@ -180,7 +184,7 @@ public class RoomManager extends PersistentState {
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
         List<Tunnel> tunnels = oldRoom.getTunnels();
-        if (!tunnels.contains(tunnel)) {
+        if (tunnels.size() < 1) {
             addTunnel(id, tunnel);
             return;
         }

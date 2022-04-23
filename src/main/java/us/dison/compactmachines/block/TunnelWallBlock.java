@@ -1,34 +1,31 @@
 package us.dison.compactmachines.block;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.state.StateManager;
-import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.EnumProperty;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.block.entity.MachineWallBlockEntity;
 import us.dison.compactmachines.block.entity.TunnelWallBlockEntity;
 import us.dison.compactmachines.block.enums.TunnelDirection;
+import us.dison.compactmachines.data.persistent.Room;
+import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
-import us.dison.compactmachines.item.PSDItem;
-import us.dison.compactmachines.item.TunnelItem;
+import us.dison.compactmachines.util.TunnelUtil;
 
-public class TunnelWallBlock extends MachineWallBlock {
+public class TunnelWallBlock extends AbstractWallBlock {
 
     public static final EnumProperty<TunnelDirection> CONNECTED_SIDE = EnumProperty.of("connected_side", TunnelDirection.class);
 
@@ -39,10 +36,6 @@ public class TunnelWallBlock extends MachineWallBlock {
         setDefaultState(getStateManager().getDefaultState().with(CONNECTED_SIDE, TunnelDirection.NONE));
     }
 
-    public TunnelWallBlock(Settings settings, boolean breakable, Tunnel tunnel) {
-        this(settings, false);
-        this.tunnel = tunnel;
-    }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
@@ -59,26 +52,34 @@ public class TunnelWallBlock extends MachineWallBlock {
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (!(world.getBlockEntity(pos) instanceof TunnelWallBlockEntity wall)) return ActionResult.FAIL;
-        if (player.getStackInHand(hand).getItem() instanceof PSDItem) {
-            return super.onUse(state, world, pos, player, hand, hit);
-        } else if (player.getStackInHand(hand).getItem() instanceof TunnelItem) {
+
+        if (player.getStackInHand(hand).equals(ItemStack.EMPTY)) {
             if (world.isClient()) {
-                return ActionResult.PASS;
+
             } else {
                 if (world == CompactMachines.cmWorld) {
-                    return ActionResult.SUCCESS;
-                } else {
-                    return ActionResult.FAIL;
-                }
-            }
-        } else if (player.getStackInHand(hand).equals(ItemStack.EMPTY)) {
-            if (world.isClient()) {
-                return ActionResult.PASS;
-            } else {
-                if (world == CompactMachines.cmWorld && player.isSneaking()) {
-                    world.setBlockState(pos, CompactMachines.BLOCK_WALL_UNBREAKABLE.getDefaultState());
-                    if (world.getBlockEntity(pos) instanceof MachineWallBlockEntity machineWall)
-                        machineWall.setParentID(wall.getParentID());
+                    RoomManager roomManager = CompactMachines.getRoomManager();
+                    Room room = roomManager.getRoomByNumber(wall.getParentID());
+                    if (player.isSneaking()) {
+                        world.setBlockState(pos, CompactMachines.BLOCK_WALL_UNBREAKABLE.getDefaultState());
+                        if (world.getBlockEntity(pos) instanceof MachineWallBlockEntity machineWall) {
+                            machineWall.setParentID(wall.getParentID());
+                            roomManager.rmTunnel(room.getNumber(), getTunnel());
+                        }
+                    } else {
+                        BlockState blockState = world.getBlockState(pos);
+                        if (blockState.getBlock() instanceof TunnelWallBlock block && hand == Hand.MAIN_HAND) {
+                            Tunnel oldTunnel = block.getTunnel();
+//                            block.setTunnel(new Tunnel(oldTunnel.getPos(), oldTunnel.getFace(), oldTunnel.getType(), oldTunnel.isConnected()));
+                            TunnelDirection nextSide = TunnelUtil.nextSide(blockState.get(CONNECTED_SIDE));
+                            world.setBlockState(pos, blockState.with(CONNECTED_SIDE, nextSide));
+                            player.sendMessage(
+                                new TranslatableText("compactmachines.direction.side",
+                                    new TranslatableText("compactmachines.direction."+nextSide.name().toLowerCase())
+                                ), true
+                            );
+                        }
+                    }
 
                     return ActionResult.SUCCESS;
                 } else {
@@ -87,13 +88,13 @@ public class TunnelWallBlock extends MachineWallBlock {
             }
         }
 
-        return ActionResult.FAIL;
+        return super.onUse(state, world, pos, player, hand, hit);
     }
 
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new TunnelWallBlockEntity(pos, state, -1);
+        return new TunnelWallBlockEntity(pos, state);
     }
 
     public void setTunnel(Tunnel tunnel) {

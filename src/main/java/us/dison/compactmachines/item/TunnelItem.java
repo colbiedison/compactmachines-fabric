@@ -38,7 +38,7 @@ public class TunnelItem extends Item {
                 String strType = typeNbt.asString();
                 TunnelType type = TunnelType.byName(strType);
                 if (type != null) {
-                    return new TranslatableText("item.compactmachines.tunnels."+type.asString());
+                    return new TranslatableText("item.compactmachines.tunnels."+type.asString().toLowerCase());
                 }
             }
         }

@@ -24,7 +24,7 @@ public enum TunnelType implements StringIdentifiable {
 
     @Override
     public String asString() {
-        return this.getName().toLowerCase();
+        return this.getName();
     }
 
     public static TunnelType byID(int id) {

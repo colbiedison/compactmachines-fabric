@@ -13,17 +13,14 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.text.LiteralText;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.registry.Registry;
 import us.dison.compactmachines.CompactMachines;
-import us.dison.compactmachines.block.TunnelWallBlock;
 import us.dison.compactmachines.block.entity.TunnelWallBlockEntity;
 import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
-import us.dison.compactmachines.item.TunnelItem;
 
 import java.util.UUID;
 
@@ -95,13 +92,16 @@ public class CompactMachinesClient implements ClientModInitializer {
 
         // Tint Tunnel Wall Blocks
         ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> {
+
             if (!(world.getBlockEntity(pos) instanceof TunnelWallBlockEntity tunnelWall)) return 0xff00ff;
-            TunnelType type = ((TunnelWallBlockEntity)world.getBlockEntity(pos)).getTunnelType();
-            if (type == null) return 0xff00ff;
+            Object ra = tunnelWall.getRenderAttachmentData();
+            TunnelWallBlockEntity.RenderAttachmentData data = (TunnelWallBlockEntity.RenderAttachmentData) ra;
+            TunnelType type = data.getType();
+            boolean isConnected = data.isConnected();
 
             return switch (tintIndex) {
-                case 0 -> type.getColor();
-                case 1 -> tunnelWall.isConnected() ? 0x2222aa : 0x222255;
+                case 0 -> type == null ? 0xff00ff : type.getColor();
+                case 1 -> isConnected ? 0xaaaabb : 0x222233;
                 default -> 0xff00ff;
             };
         }, BLOCK_WALL_TUNNEL);
