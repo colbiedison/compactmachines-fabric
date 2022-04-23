@@ -66,7 +66,7 @@ public class MachineBlock extends BlockWithEntity {
                     blockEntity.setOwner(serverPlayer.getUuid());
                     BlockPos roomCenterPos = RoomUtil.getCenterPosByID(machineID);
                     BlockPos spawnPos = roomCenterPos.add(0, -(size.getSize()/2d)+1, 0);
-                    roomManager.addRoom(world.getRegistryKey().getValue(), serverPlayer.getUuidAsString(), pos, roomCenterPos, spawnPos, machineID, new ArrayList<>());
+                    roomManager.addRoom(world.getRegistryKey().getValue(), serverPlayer.getUuidAsString(), pos, roomCenterPos, spawnPos, machineID, new ArrayList<>(), new ArrayList<>());
                     serverPlayer.sendMessage(new TranslatableText("message.compactmachines.generating_room"), true);
                     RoomUtil.generateRoom(CompactMachines.cmWorld, machineID, blockEntity.getSize());
                     serverPlayer.sendMessage(new TranslatableText("message.compactmachines.ready").formatted(Formatting.GREEN), true);

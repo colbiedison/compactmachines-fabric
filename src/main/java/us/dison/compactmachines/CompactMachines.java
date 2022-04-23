@@ -34,6 +34,7 @@ import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.block.entity.MachineBlockEntity;
 import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.item.PSDItem;
+import us.dison.compactmachines.item.TunnelItem;
 
 public class CompactMachines implements ModInitializer {
 
@@ -56,6 +57,7 @@ public class CompactMachines implements ModInitializer {
     public static final Identifier ID_WALL = new Identifier(MODID, "wall");
     public static final Identifier ID_WALL_TUNNEL = new Identifier(MODID, "tunnel_wall");
     public static final Identifier ID_PSD = new Identifier(MODID, "personal_shrinking_device");
+    public static final Identifier ID_TUNNEL = new Identifier(MODID, "tunnel");
 
     // Block settings
     public static final FabricBlockSettings SETTINGS_BLOCK_MACHINE = FabricBlockSettings.of(Material.METAL).strength(4.0f).requiresTool();
@@ -80,6 +82,7 @@ public class CompactMachines implements ModInitializer {
     public static final FabricItemSettings SETTINGS_ITEM = new FabricItemSettings().group(CM_ITEMGROUP);
     // Item
     public static final Item ITEM_PSD = new PSDItem(SETTINGS_ITEM);
+    public static final Item ITEM_TUNNEL = new TunnelItem(SETTINGS_ITEM);
 
     // BlockEntityType
     public static BlockEntityType<MachineBlockEntity> MACHINE_BLOCK_ENTITY;
@@ -155,6 +158,7 @@ public class CompactMachines implements ModInitializer {
         Registry.register(Registry.ITEM, ID_WALL,       new BlockItem(Registry.BLOCK.get(ID_WALL), SETTINGS_ITEM));
         Registry.register(Registry.ITEM, ID_WALL_TUNNEL,       new BlockItem(Registry.BLOCK.get(ID_WALL_TUNNEL), SETTINGS_ITEM));
         Registry.register(Registry.ITEM, ID_PSD, ITEM_PSD);
+        Registry.register(Registry.ITEM, ID_TUNNEL, ITEM_TUNNEL);
 
         LOGGER.info("CompactMachines initialized");
     }

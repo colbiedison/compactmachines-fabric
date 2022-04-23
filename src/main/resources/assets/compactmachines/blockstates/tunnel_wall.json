@@ -17,6 +17,9 @@
     },
     "connected_side=east": {
       "model": "compactmachines:tunnels/east"
+    },
+    "connected_side=none": {
+      "model": "compactmachines:tunnels/none"
     }
   }
 }

@@ -3,19 +3,23 @@ package us.dison.compactmachines.client;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.registry.Registry;
+import us.dison.compactmachines.CompactMachines;
+import us.dison.compactmachines.block.TunnelWallBlock;
 import us.dison.compactmachines.block.enums.MachineSize;
 
 import java.util.UUID;
 
-import static us.dison.compactmachines.CompactMachines.ID_WALL_UNBREAKABLE;
-import static us.dison.compactmachines.CompactMachines.MODID;
+import static us.dison.compactmachines.CompactMachines.*;
 
 @Environment(EnvType.CLIENT)
 public class CompactMachinesClient implements ClientModInitializer {
@@ -57,7 +61,19 @@ public class CompactMachinesClient implements ClientModInitializer {
             }
         });
 
+        // Make Tunnel Wall Blocks have transparent render layers
+        BlockRenderLayerMap.INSTANCE.putBlock(CompactMachines.BLOCK_WALL_TUNNEL, RenderLayer.getCutout());
 
+        // Tint Tunnel Wall Blocks
+        ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> {
+            TunnelWallBlock block = (TunnelWallBlock)state.getBlock();
+            if (block.getTunnel() == null) return 0xff00ff;
 
+            return switch (tintIndex) {
+                case 0 -> block.getTunnel().getType().getColor();
+                case 1 -> block.getTunnel().isConnected() ? 0x2222aa : 0x222255;
+                default -> 0xff00ff;
+            };
+        }, BLOCK_WALL_TUNNEL);
     }
 }

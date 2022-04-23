@@ -6,18 +6,20 @@ import net.minecraft.util.StringIdentifiable;
 import java.util.Objects;
 
 public enum TunnelType implements StringIdentifiable {
-    ITEM("Item", 0),
-    REDSTONE("Redstone", 1),
-    ENERGY("Energy", 2);
+    ITEM    ("Item",        0, 0x555555),
+    REDSTONE("Redstone",    1, 0xaa1111),
+    ENERGY  ("Energy",      2, 0xee3333);
 
     public static final Codec<TunnelType> CODEC = StringIdentifiable.createCodec(TunnelType::values, TunnelType::byName);
 
     private final String name;
     private final int id;
+    private final int color;
 
-    TunnelType(String name, int id) {
+    TunnelType(String name, int id, int color) {
         this.name = name;
         this.id = id;
+        this.color = color;
     }
 
     @Override
@@ -45,5 +47,9 @@ public enum TunnelType implements StringIdentifiable {
 
     public int getID() {
         return id;
+    }
+
+    public int getColor() {
+        return color;
     }
 }
