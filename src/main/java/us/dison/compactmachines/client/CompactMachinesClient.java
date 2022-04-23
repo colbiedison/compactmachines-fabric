@@ -20,6 +20,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.registry.Registry;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.block.TunnelWallBlock;
+import us.dison.compactmachines.block.entity.TunnelWallBlockEntity;
 import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
 import us.dison.compactmachines.item.TunnelItem;
@@ -94,12 +95,13 @@ public class CompactMachinesClient implements ClientModInitializer {
 
         // Tint Tunnel Wall Blocks
         ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> {
-            TunnelWallBlock block = (TunnelWallBlock) state.getBlock();
-            if (block.getTunnel() == null) return 0xff00ff;
+            if (!(world.getBlockEntity(pos) instanceof TunnelWallBlockEntity tunnelWall)) return 0xff00ff;
+            TunnelType type = ((TunnelWallBlockEntity)world.getBlockEntity(pos)).getTunnelType();
+            if (type == null) return 0xff00ff;
 
             return switch (tintIndex) {
-                case 0 -> block.getTunnel().getType().getColor();
-                case 1 -> block.getTunnel().isConnected() ? 0x2222aa : 0x222255;
+                case 0 -> type.getColor();
+                case 1 -> tunnelWall.isConnected() ? 0x2222aa : 0x222255;
                 default -> 0xff00ff;
             };
         }, BLOCK_WALL_TUNNEL);

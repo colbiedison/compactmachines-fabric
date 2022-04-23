@@ -7,6 +7,8 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.EnumProperty;
@@ -34,11 +36,11 @@ public class TunnelWallBlock extends MachineWallBlock {
 
     public TunnelWallBlock(Settings settings, boolean breakable) {
         super(settings, breakable);
+        setDefaultState(getStateManager().getDefaultState().with(CONNECTED_SIDE, TunnelDirection.NONE));
     }
 
     public TunnelWallBlock(Settings settings, boolean breakable, Tunnel tunnel) {
         this(settings, false);
-        setDefaultState(getStateManager().getDefaultState().with(CONNECTED_SIDE, TunnelDirection.NONE));
         this.tunnel = tunnel;
     }
 
@@ -56,6 +58,7 @@ public class TunnelWallBlock extends MachineWallBlock {
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+        if (!(world.getBlockEntity(pos) instanceof TunnelWallBlockEntity wall)) return ActionResult.FAIL;
         if (player.getStackInHand(hand).getItem() instanceof PSDItem) {
             return super.onUse(state, world, pos, player, hand, hit);
         } else if (player.getStackInHand(hand).getItem() instanceof TunnelItem) {
@@ -63,6 +66,20 @@ public class TunnelWallBlock extends MachineWallBlock {
                 return ActionResult.PASS;
             } else {
                 if (world == CompactMachines.cmWorld) {
+                    return ActionResult.SUCCESS;
+                } else {
+                    return ActionResult.FAIL;
+                }
+            }
+        } else if (player.getStackInHand(hand).equals(ItemStack.EMPTY)) {
+            if (world.isClient()) {
+                return ActionResult.PASS;
+            } else {
+                if (world == CompactMachines.cmWorld && player.isSneaking()) {
+                    world.setBlockState(pos, CompactMachines.BLOCK_WALL_UNBREAKABLE.getDefaultState());
+                    if (world.getBlockEntity(pos) instanceof MachineWallBlockEntity machineWall)
+                        machineWall.setParentID(wall.getParentID());
+
                     return ActionResult.SUCCESS;
                 } else {
                     return ActionResult.FAIL;

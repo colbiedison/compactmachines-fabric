@@ -176,6 +176,27 @@ public class RoomManager extends PersistentState {
         markDirty();
     }
 
+    public void updateTunnel(int id, Tunnel tunnel) {
+        Room oldRoom = getRoomByNumber(id);
+        if (oldRoom == null) return;
+        List<Tunnel> tunnels = oldRoom.getTunnels();
+        if (!tunnels.contains(tunnel)) {
+            addTunnel(id, tunnel);
+            return;
+        }
+        BlockPos pos = tunnel.getPos();
+        Tunnel targetTunnel = null;
+        for (Tunnel oldTunnel : tunnels) {
+            if (oldTunnel.getPos() == pos) {
+                targetTunnel = oldTunnel;
+            }
+        }
+        if (targetTunnel == null) return;
+        tunnels.remove(targetTunnel);
+        tunnels.add(tunnel);
+        updateTunnels(id, tunnels);
+    }
+
     public boolean roomExists(int number) {
         return getRoomByNumber(number) != null;
     }

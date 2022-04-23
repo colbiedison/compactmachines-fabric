@@ -30,6 +30,7 @@ import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
 import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
 import us.dison.compactmachines.item.PSDItem;
 import us.dison.compactmachines.item.TunnelItem;
+import us.dison.compactmachines.util.TunnelUtil;
 
 import java.util.List;
 
@@ -48,15 +49,42 @@ public class MachineWallBlock extends BlockWithEntity {
         ActionResult s = super.onUse(state, world, pos, player, hand, hit);
 
         if (world != CompactMachines.cmWorld) return ActionResult.FAIL;
-        if (world.isClient) return ActionResult.SUCCESS;
         if (world.getBlockEntity(pos) instanceof TunnelWallBlockEntity) return ActionResult.FAIL;
         if (!(world.getBlockEntity(pos) instanceof MachineWallBlockEntity wall)) return ActionResult.FAIL;
-        if (world.getServer() == null) return ActionResult.FAIL;
 
         RoomManager roomManager = CompactMachines.getRoomManager();
-        ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
         Room room = roomManager.getRoomByNumber(wall.getParentID());
         if (room == null) return ActionResult.FAIL;
+
+        if (player.getStackInHand(hand).getItem() instanceof TunnelItem) {
+            ItemStack stack = player.getStackInHand(hand);
+            NbtCompound stackNbt = stack.getNbt();
+            TunnelType type = TunnelUtil.typeFromStackNbt(stackNbt);
+            if (type != null) {
+                world.breakBlock(pos, false);
+                world.setBlockState(pos,
+                        CompactMachines.BLOCK_WALL_TUNNEL.getDefaultState()
+                );
+                if (world.getBlockEntity(pos) instanceof TunnelWallBlockEntity tunnelWall) {
+                    tunnelWall.setParentID(wall.getParentID());
+                    tunnelWall.setTunnelType(type);
+                    tunnelWall.setConnected(false);
+                    roomManager.updateTunnel(room.getNumber(), new Tunnel(
+                            wall.getPos(),
+                            TunnelDirection.NONE,
+                            type,
+                            false
+                    ));
+                }
+            }
+
+            return ActionResult.SUCCESS;
+        }
+
+        if (world.isClient) return ActionResult.SUCCESS;
+        if (world.getServer() == null) return ActionResult.FAIL;
+
+        ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
         ServerWorld machineWorld = world.getServer().getWorld(RegistryKey.of(Registry.WORLD_KEY, room.getWorld()));
         BlockPos machinePos = room.getMachine();
 
@@ -64,24 +92,6 @@ public class MachineWallBlock extends BlockWithEntity {
             CompactMachines.LOGGER.info("Teleporting player "+player.getDisplayName().asString()+" out of machine #"+room.getNumber()+" at: "+room.getCenter().toShortString());
             serverPlayer.teleport(machineWorld, machinePos.getX(), machinePos.getY(), machinePos.getZ(), 0, 0);
             roomManager.rmPlayer(room.getNumber(), serverPlayer.getUuidAsString());
-
-            return ActionResult.SUCCESS;
-        } else if (player.getStackInHand(hand).getItem() instanceof TunnelItem) {
-            ItemStack stack = player.getStackInHand(hand);
-            NbtCompound stackNbt = stack.getNbt();
-            if (stackNbt != null) {
-                NbtElement typeNbt = stackNbt.get("type");
-                if (typeNbt != null) {
-                    String strType = typeNbt.asString();
-                    TunnelType type = TunnelType.byName(strType);
-                    if (type != null) {
-                        world.setBlockState(pos,
-                                CompactMachines.BLOCK_WALL_TUNNEL.getDefaultState()
-                        );
-
-                    }
-                }
-            }
 
             return ActionResult.SUCCESS;
         }
