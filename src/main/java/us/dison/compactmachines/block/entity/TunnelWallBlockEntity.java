@@ -4,6 +4,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
 
 public class TunnelWallBlockEntity extends MachineWallBlockEntity {
 

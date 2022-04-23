@@ -10,12 +10,19 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.registry.Registry;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.block.TunnelWallBlock;
 import us.dison.compactmachines.block.enums.MachineSize;
+import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
+import us.dison.compactmachines.item.TunnelItem;
 
 import java.util.UUID;
 
@@ -58,6 +65,27 @@ public class CompactMachinesClient implements ClientModInitializer {
             } else
             if (Registry.ITEM.getId(stack.getItem()).equals(ID_WALL_UNBREAKABLE)) { // Unbreakable wall tooltip
                 lines.add(1, new TranslatableText("tooltip.compactmachines.details.solid_wall").formatted(Formatting.RED));
+            } else
+            if (Registry.ITEM.getId(stack.getItem()).equals(ID_TUNNEL)) { // Tunnel item
+                NbtCompound stackNbt = stack.getNbt();
+                Text errMsg = null;
+                if (stackNbt == null) {
+                    errMsg = new TranslatableText("compactmachines.errors.no_data");
+                } else {
+                    NbtElement typeNbt = stackNbt.get("type");
+                    if (typeNbt == null) {
+                        errMsg = new TranslatableText("compactmachines.errors.no_type");
+                    } else {
+                        TunnelType type = TunnelType.byName(typeNbt.asString());
+                        if (type == null) {
+                            errMsg = new LiteralText(typeNbt.asString());
+                        }
+                    }
+                }
+
+                if (errMsg != null) {
+                    lines.add(1, new TranslatableText("compactmachines.errors.unknown_tunnel_type", errMsg).formatted(Formatting.RED));
+                }
             }
         });
 
@@ -66,7 +94,7 @@ public class CompactMachinesClient implements ClientModInitializer {
 
         // Tint Tunnel Wall Blocks
         ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> {
-            TunnelWallBlock block = (TunnelWallBlock)state.getBlock();
+            TunnelWallBlock block = (TunnelWallBlock) state.getBlock();
             if (block.getTunnel() == null) return 0xff00ff;
 
             return switch (tintIndex) {
@@ -75,5 +103,20 @@ public class CompactMachinesClient implements ClientModInitializer {
                 default -> 0xff00ff;
             };
         }, BLOCK_WALL_TUNNEL);
+
+        // Tint Tunnel items
+        ColorProviderRegistry.ITEM.register((stack, tintIndex) -> {
+            NbtCompound stackNbt = stack.getNbt();
+            if (stackNbt == null) return 0xff00ff;
+            NbtElement typeNbt = stackNbt.get("type");
+            if (typeNbt == null) return 0xff00ff;
+            TunnelType type = TunnelType.byName(typeNbt.asString());
+            if (type == null) return 0xff00ff;
+
+            return switch (tintIndex) {
+                case 0 -> type.getColor();
+                default -> 0xff00ff;
+            };
+        }, ITEM_TUNNEL);
     }
 }

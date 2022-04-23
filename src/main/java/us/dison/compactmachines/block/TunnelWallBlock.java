@@ -19,6 +19,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import us.dison.compactmachines.CompactMachines;
+import us.dison.compactmachines.block.entity.MachineWallBlockEntity;
 import us.dison.compactmachines.block.entity.TunnelWallBlockEntity;
 import us.dison.compactmachines.block.enums.TunnelDirection;
 import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
@@ -70,6 +71,16 @@ public class TunnelWallBlock extends MachineWallBlock {
         }
 
         return ActionResult.FAIL;
+    }
+
+    @Nullable
+    @Override
+    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+        return new TunnelWallBlockEntity(pos, state, -1);
+    }
+
+    public void setTunnel(Tunnel tunnel) {
+        this.tunnel = tunnel;
     }
 
     public Tunnel getTunnel() {
