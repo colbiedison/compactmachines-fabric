@@ -6,7 +6,7 @@ import us.dison.compactmachines.block.enums.TunnelDirection;
 import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
 
 public class TunnelUtil {
-    public static TunnelType typeFromStackNbt(NbtCompound stackNbt) {
+    public static TunnelType typeFromNbt(NbtCompound stackNbt) {
         if (stackNbt != null) {
             NbtElement typeNbt = stackNbt.get("type");
             if (typeNbt != null) {

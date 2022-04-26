@@ -60,7 +60,7 @@ public abstract class AbstractWallBlock extends BlockWithEntity {
         if (player.getStackInHand(hand).getItem() instanceof TunnelItem) {
             ItemStack stack = player.getStackInHand(hand);
             NbtCompound stackNbt = stack.getNbt();
-            TunnelType type = TunnelUtil.typeFromStackNbt(stackNbt);
+            TunnelType type = TunnelUtil.typeFromNbt(stackNbt);
             if (type != null) {
                 world.breakBlock(pos, false);
                 world.setBlockState(pos,

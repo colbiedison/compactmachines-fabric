@@ -5,8 +5,10 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.text.TranslatableText;
@@ -14,6 +16,8 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3f;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import us.dison.compactmachines.CompactMachines;
@@ -61,11 +65,17 @@ public class TunnelWallBlock extends AbstractWallBlock {
                     RoomManager roomManager = CompactMachines.getRoomManager();
                     Room room = roomManager.getRoomByNumber(wall.getParentID());
                     if (player.isSneaking()) {
+                        if (!(world.getBlockEntity(pos) instanceof TunnelWallBlockEntity tunnelWallEntity)) return ActionResult.FAIL;
                         world.setBlockState(pos, CompactMachines.BLOCK_WALL_UNBREAKABLE.getDefaultState());
-                        if (world.getBlockEntity(pos) instanceof MachineWallBlockEntity machineWall) {
-                            machineWall.setParentID(wall.getParentID());
-                            roomManager.rmTunnel(room.getNumber(), getTunnel());
-                        }
+                        if (!(world.getBlockEntity(pos) instanceof MachineWallBlockEntity wallEntity)) return ActionResult.FAIL;
+                        wallEntity.setParentID(wall.getParentID());
+                        roomManager.rmTunnel(room.getNumber(), getTunnel());
+                        // Spawn tunnel item
+                        ItemStack itemStack = CompactMachines.ITEM_TUNNEL.getDefaultStack();
+                        itemStack.setSubNbt("type", NbtString.of(tunnelWallEntity.getTunnelType().asString()));
+                        BlockPos itemPos = pos.offset(hit.getSide(), 1);
+                        ItemEntity itemEntity = new ItemEntity(world, itemPos.getX() + 0.5, itemPos.getY(), itemPos.getZ() + 0.5, itemStack);
+                        world.spawnEntity(itemEntity);
                     } else {
                         BlockState blockState = world.getBlockState(pos);
                         if (blockState.getBlock() instanceof TunnelWallBlock block && hand == Hand.MAIN_HAND) {
