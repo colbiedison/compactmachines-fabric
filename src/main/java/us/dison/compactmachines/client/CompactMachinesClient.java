@@ -18,6 +18,7 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.registry.Registry;
 import us.dison.compactmachines.CompactMachines;
+import us.dison.compactmachines.block.TunnelWallBlock;
 import us.dison.compactmachines.block.entity.TunnelWallBlockEntity;
 import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
@@ -97,6 +98,9 @@ public class CompactMachinesClient implements ClientModInitializer {
             Object ra = tunnelWall.getRenderAttachmentData();
             TunnelWallBlockEntity.RenderAttachmentData data = (TunnelWallBlockEntity.RenderAttachmentData) ra;
             TunnelType type = data.getType();
+            if (type == null && world.getBlockState(pos).getBlock() instanceof TunnelWallBlock tunnelBlock) {
+                type = tunnelBlock.getTunnel().getType();
+            }
             boolean isConnected = data.isConnected();
 
             return switch (tintIndex) {

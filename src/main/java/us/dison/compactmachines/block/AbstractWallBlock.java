@@ -68,11 +68,12 @@ public abstract class AbstractWallBlock extends BlockWithEntity {
                         CompactMachines.BLOCK_WALL_TUNNEL.getDefaultState(),
                         Block.NOTIFY_ALL | Block.FORCE_STATE
                 );
-                if (world.getBlockEntity(pos) instanceof TunnelWallBlockEntity tunnelWall) {
-                    tunnelWall.setParentID(wall.getParentID());
-                    tunnelWall.setTunnelType(type);
-                    tunnelWall.setConnected(false);
-                    world.setBlockState(pos, world.getBlockState(pos));
+                if (world.getBlockEntity(pos) instanceof TunnelWallBlockEntity tunnelEntity) {
+                    tunnelEntity.setParentID(wall.getParentID());
+                    tunnelEntity.setTunnelType(type);
+                    tunnelEntity.setConnected(false);
+                    world.setBlockState(pos, world.getBlockState(pos),
+                            Block.NOTIFY_ALL | Block.FORCE_STATE);
                     Tunnel tunnel = new Tunnel(
                             wall.getPos(),
                             TunnelDirection.NONE,
