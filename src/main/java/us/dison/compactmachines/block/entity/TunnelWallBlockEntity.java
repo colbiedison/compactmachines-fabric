@@ -44,7 +44,6 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
 
     @Override
     public Object getRenderAttachmentData() {
-        System.out.println(strType);
         return new RenderAttachmentData(getTunnelType(), isConnected());
     }
 

@@ -1,5 +1,6 @@
 package us.dison.compactmachines.block;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
@@ -64,12 +65,14 @@ public abstract class AbstractWallBlock extends BlockWithEntity {
             if (type != null) {
                 world.breakBlock(pos, false);
                 world.setBlockState(pos,
-                        CompactMachines.BLOCK_WALL_TUNNEL.getDefaultState()
+                        CompactMachines.BLOCK_WALL_TUNNEL.getDefaultState(),
+                        Block.NOTIFY_ALL | Block.FORCE_STATE
                 );
                 if (world.getBlockEntity(pos) instanceof TunnelWallBlockEntity tunnelWall) {
                     tunnelWall.setParentID(wall.getParentID());
                     tunnelWall.setTunnelType(type);
                     tunnelWall.setConnected(false);
+                    world.setBlockState(pos, world.getBlockState(pos));
                     Tunnel tunnel = new Tunnel(
                             wall.getPos(),
                             TunnelDirection.NONE,
