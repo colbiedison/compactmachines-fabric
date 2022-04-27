@@ -2,7 +2,10 @@ package us.dison.compactmachines.util;
 
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.util.math.BlockPos;
 import us.dison.compactmachines.block.enums.TunnelDirection;
+import us.dison.compactmachines.data.persistent.Room;
+import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
 import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
 
 public class TunnelUtil {
@@ -31,5 +34,23 @@ public class TunnelUtil {
             }
         }
         return TunnelDirection.values()[i];
+    }
+
+    public static Tunnel fromRoomAndPos(Room room, BlockPos pos) {
+        if (room == null) return null;
+        for (Tunnel tunnel : room.getTunnels()) {
+            if (equalBlockPos(tunnel.getPos(), pos)) {
+                return tunnel;
+            }
+        }
+        return null;
+    }
+
+    public static boolean equalBlockPos(BlockPos a, BlockPos b) {
+        return (
+                a.getX() == b.getX() &&
+                a.getY() == b.getY() &&
+                a.getZ() == b.getZ()
+        );
     }
 }

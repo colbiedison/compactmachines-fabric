@@ -144,31 +144,57 @@ public class RoomManager extends PersistentState {
     public void rmTunnel(int id, Tunnel tunnel) {
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
-        List<Tunnel> tunnels = new ArrayList<Tunnel>(oldRoom.getTunnels());
-        tunnels.forEach(tunnel1 -> {
-            System.out.println(tunnel1.toString());
-        });
-        System.out.println(tunnel.toString());
-        if (tunnels.contains(tunnel)) {
-            tunnels.remove(tunnel);
-            updateTunnels(id, tunnels);
-            return;
+
+        System.out.println("REMOVE "+tunnel);
+        ArrayList<Tunnel> tunnels = new ArrayList<>(oldRoom.getTunnels());
+        System.out.println("OLD TUNNELS:");
+        for (Tunnel tunnel1 : tunnels) {
+            System.out.println(tunnel1);
         }
-        CompactMachines.LOGGER.warn("Attempted to remove tunnel from machine #"+id+" but the machine already has the tunnel");
+        while (tunnels.contains(tunnel)) {
+            tunnels.remove(tunnel);
+            System.out.println("Removed "+tunnel);
+        }
+        System.out.println("NEW TUNNELS:");
+        for (Tunnel tunnel1 : tunnels) {
+            System.out.println(tunnel1);
+        }
+        updateTunnels(id, tunnels);
+
+//        List<Tunnel> oldTunnels = new ArrayList<>(oldRoom.getTunnels());
+//        List<Tunnel> newTunnels = new ArrayList<>();
+//        System.out.println("OLD TUNNELS:");
+//        for (Tunnel oldTunnel : oldTunnels) {
+//            System.out.println(oldTunnel);
+//            if (oldTunnel == null) continue;
+//            if (oldTunnel.getPos() != tunnel.getPos()) {
+//                newTunnels.add(oldTunnel);
+//            } else {
+//                System.out.println("Removed "+oldTunnel);
+//            }
+//        }
+//        System.out.println("NEW TUNNELS:");
+//        for (Tunnel newTunnel : newTunnels) {
+//            System.out.println(newTunnel);
+//        }
+//
+//        updateTunnels(id, newTunnels);
+
+//        CompactMachines.LOGGER.warn("Failed to remove tunnel from machine #"+id);
     }
 
     public void addTunnel(int id, Tunnel tunnel) {
-        System.out.println(tunnel.toString());
+        System.out.println("ADD "+tunnel);
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
-        List<Tunnel> tunnels = new ArrayList<Tunnel>(oldRoom.getTunnels());
-//        List<Tunnel> tunnels = new ArrayList<Tunnel>();
-        if (!tunnels.contains(tunnel)) {
-            tunnels.add(tunnel);
-            updateTunnels(id, tunnels);
-            return;
-        }
-        CompactMachines.LOGGER.warn("Attempted to add tunnel to machine #"+id+" but the machine already has the tunnel");
+        rmTunnel(id, tunnel);
+//        rmTunnel(id, tunnel);
+        List<Tunnel> tunnels = new ArrayList<>(oldRoom.getTunnels());
+        tunnels.add(tunnel);
+        System.out.println("Added "+tunnel);
+
+        updateTunnels(id, tunnels);
+//        CompactMachines.LOGGER.warn("Failed to add tunnel to machine #"+id);
     }
 
     public void updateTunnels(int id, List<Tunnel> tunnels) {
@@ -183,7 +209,7 @@ public class RoomManager extends PersistentState {
     public void updateTunnel(int id, Tunnel tunnel) {
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
-        List<Tunnel> tunnels = oldRoom.getTunnels();
+        List<Tunnel> tunnels = new ArrayList<>(oldRoom.getTunnels());
         if (tunnels.size() < 1) {
             addTunnel(id, tunnel);
             return;

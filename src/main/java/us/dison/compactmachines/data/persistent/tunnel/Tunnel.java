@@ -36,6 +36,22 @@ public class Tunnel {
         );
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Tunnel other)) return false;
+        if (this == other) return true;
+        if (
+                this.getPos().getX() == other.getPos().getX() &&
+                this.getPos().getY() == other.getPos().getY() &&
+                this.getPos().getZ() == other.getPos().getZ() &&
+                this.getFace().name().equals(other.getFace().name()) &&
+                this.getType().name().equals(other.getType().name()) &&
+                this.isConnected() == other.isConnected()
+        ) return true;
+
+        return false;
+    }
+
     public BlockPos getPos() {
         return pos;
     }

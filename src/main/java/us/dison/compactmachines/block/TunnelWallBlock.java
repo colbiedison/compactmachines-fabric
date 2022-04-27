@@ -69,7 +69,9 @@ public class TunnelWallBlock extends AbstractWallBlock {
                         world.setBlockState(pos, CompactMachines.BLOCK_WALL_UNBREAKABLE.getDefaultState());
                         if (!(world.getBlockEntity(pos) instanceof MachineWallBlockEntity wallEntity)) return ActionResult.FAIL;
                         wallEntity.setParentID(wall.getParentID());
-                        roomManager.rmTunnel(room.getNumber(), getTunnel());
+                        Tunnel t = TunnelUtil.fromRoomAndPos(room, pos);
+                        if (t == null) return ActionResult.FAIL;
+                        roomManager.rmTunnel(room.getNumber(), t);
                         // Spawn tunnel item
                         ItemStack itemStack = CompactMachines.ITEM_TUNNEL.getDefaultStack();
                         itemStack.setSubNbt("type", NbtString.of(tunnelWallEntity.getTunnelType().asString()));
