@@ -12,6 +12,7 @@ import net.minecraft.world.World;
 import org.apache.commons.lang3.Validate;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
+import us.dison.compactmachines.util.TunnelUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -217,7 +218,7 @@ public class RoomManager extends PersistentState {
         BlockPos pos = tunnel.getPos();
         Tunnel targetTunnel = null;
         for (Tunnel oldTunnel : tunnels) {
-            if (oldTunnel.getPos() == pos) {
+            if (TunnelUtil.equalBlockPos(tunnel.getPos(), oldTunnel.getPos())) {
                 targetTunnel = oldTunnel;
             }
         }

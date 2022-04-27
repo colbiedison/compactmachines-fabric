@@ -36,6 +36,15 @@ public class TunnelUtil {
         return TunnelDirection.values()[i];
     }
 
+    public static Tunnel rotate(Tunnel t) {
+        return new Tunnel(
+                t.getPos(),
+                nextSide(t.getFace()),
+                t.getType(),
+                t.isConnected()
+        );
+    }
+
     public static Tunnel fromRoomAndPos(Room room, BlockPos pos) {
         if (room == null) return null;
         for (Tunnel tunnel : room.getTunnels()) {

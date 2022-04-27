@@ -2,6 +2,7 @@ package us.dison.compactmachines.block.enums;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.util.StringIdentifiable;
+import net.minecraft.util.math.Direction;
 
 import java.util.Objects;
 
@@ -29,6 +30,18 @@ public enum TunnelDirection implements StringIdentifiable {
             if (Objects.equals(d.asString(), name)) return d;
 
         return null;
+    }
+
+    public Direction toDirection() {
+        return switch (this) {
+            case NORTH ->   Direction.NORTH;
+            case SOUTH ->   Direction.SOUTH;
+            case EAST ->    Direction.EAST;
+            case WEST ->    Direction.WEST;
+            case UP ->      Direction.UP;
+            case DOWN ->    Direction.DOWN;
+            default ->      null;
+        };
     }
 
     @Override
