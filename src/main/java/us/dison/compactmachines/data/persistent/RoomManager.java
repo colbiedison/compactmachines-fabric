@@ -77,7 +77,7 @@ public class RoomManager extends PersistentState {
     public void updateOwner(int id, String uuid) {
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
-        Room newRoom = new Room(oldRoom.getWorld(), uuid, oldRoom.getMachine(), oldRoom.getCenter(), oldRoom.getSpawnPos(), oldRoom.getNumber(), oldRoom.getPlayers(), oldRoom.getTunnels());
+        Room newRoom = new Room(oldRoom.getWorld(), uuid, oldRoom.getMachinePos(), oldRoom.getCenter(), oldRoom.getSpawnPos(), oldRoom.getNumber(), oldRoom.getPlayers(), oldRoom.getTunnels());
         rooms.remove(oldRoom);
         rooms.add(newRoom);
         markDirty();
@@ -128,7 +128,7 @@ public class RoomManager extends PersistentState {
     public void updatePlayers(int id, List<String> players) {
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
-        Room newRoom = new Room(oldRoom.getWorld(), oldRoom.getOwner(), oldRoom.getMachine(), oldRoom.getCenter(), oldRoom.getSpawnPos(), oldRoom.getNumber(), players, oldRoom.getTunnels());
+        Room newRoom = new Room(oldRoom.getWorld(), oldRoom.getOwner(), oldRoom.getMachinePos(), oldRoom.getCenter(), oldRoom.getSpawnPos(), oldRoom.getNumber(), players, oldRoom.getTunnels());
         rooms.remove(oldRoom);
         rooms.add(newRoom);
         markDirty();
@@ -137,7 +137,7 @@ public class RoomManager extends PersistentState {
     public void updateSpawnPos(int id, BlockPos pos) {
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
-        Room newRoom = new Room(oldRoom.getWorld(), oldRoom.getOwner(), oldRoom.getMachine(), oldRoom.getCenter(), pos, oldRoom.getNumber(), oldRoom.getPlayers(), oldRoom.getTunnels());
+        Room newRoom = new Room(oldRoom.getWorld(), oldRoom.getOwner(), oldRoom.getMachinePos(), oldRoom.getCenter(), pos, oldRoom.getNumber(), oldRoom.getPlayers(), oldRoom.getTunnels());
         rooms.remove(oldRoom);
         rooms.add(newRoom);
     }
@@ -146,62 +146,28 @@ public class RoomManager extends PersistentState {
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
 
-        System.out.println("REMOVE "+tunnel);
         ArrayList<Tunnel> tunnels = new ArrayList<>(oldRoom.getTunnels());
-        System.out.println("OLD TUNNELS:");
-        for (Tunnel tunnel1 : tunnels) {
-            System.out.println(tunnel1);
-        }
         while (tunnels.contains(tunnel)) {
             tunnels.remove(tunnel);
-            System.out.println("Removed "+tunnel);
         }
-        System.out.println("NEW TUNNELS:");
-        for (Tunnel tunnel1 : tunnels) {
-            System.out.println(tunnel1);
-        }
+
         updateTunnels(id, tunnels);
-
-//        List<Tunnel> oldTunnels = new ArrayList<>(oldRoom.getTunnels());
-//        List<Tunnel> newTunnels = new ArrayList<>();
-//        System.out.println("OLD TUNNELS:");
-//        for (Tunnel oldTunnel : oldTunnels) {
-//            System.out.println(oldTunnel);
-//            if (oldTunnel == null) continue;
-//            if (oldTunnel.getPos() != tunnel.getPos()) {
-//                newTunnels.add(oldTunnel);
-//            } else {
-//                System.out.println("Removed "+oldTunnel);
-//            }
-//        }
-//        System.out.println("NEW TUNNELS:");
-//        for (Tunnel newTunnel : newTunnels) {
-//            System.out.println(newTunnel);
-//        }
-//
-//        updateTunnels(id, newTunnels);
-
-//        CompactMachines.LOGGER.warn("Failed to remove tunnel from machine #"+id);
     }
 
     public void addTunnel(int id, Tunnel tunnel) {
-        System.out.println("ADD "+tunnel);
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
         rmTunnel(id, tunnel);
-//        rmTunnel(id, tunnel);
         List<Tunnel> tunnels = new ArrayList<>(oldRoom.getTunnels());
         tunnels.add(tunnel);
-        System.out.println("Added "+tunnel);
 
         updateTunnels(id, tunnels);
-//        CompactMachines.LOGGER.warn("Failed to add tunnel to machine #"+id);
     }
 
     public void updateTunnels(int id, List<Tunnel> tunnels) {
         Room oldRoom = getRoomByNumber(id);
         if (oldRoom == null) return;
-        Room newRoom = new Room(oldRoom.getWorld(), oldRoom.getOwner(), oldRoom.getMachine(), oldRoom.getCenter(), oldRoom.getSpawnPos(), oldRoom.getNumber(), oldRoom.getPlayers(), tunnels);
+        Room newRoom = new Room(oldRoom.getWorld(), oldRoom.getOwner(), oldRoom.getMachinePos(), oldRoom.getCenter(), oldRoom.getSpawnPos(), oldRoom.getNumber(), oldRoom.getPlayers(), tunnels);
         rooms.remove(oldRoom);
         rooms.add(newRoom);
         markDirty();
@@ -245,7 +211,7 @@ public class RoomManager extends PersistentState {
 
     public Room getRoomByMachinePos(BlockPos machine) {
         for (Room room : rooms) {
-            if (room.getMachine() == machine) return room;
+            if (room.getMachinePos() == machine) return room;
         }
         return null;
     }

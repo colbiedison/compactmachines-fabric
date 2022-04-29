@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.BlockItem;
@@ -135,6 +136,12 @@ public class CompactMachines implements ModInitializer {
         MACHINE_WALL_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, MODID + ":machine_wall_block_entity", FabricBlockEntityTypeBuilder.create(
                 MachineWallBlockEntity::new, BLOCK_WALL_UNBREAKABLE
         ).build(null));
+
+        // REGISTER Fabric Transfer API blocks
+        ItemStorage.SIDED.registerForBlockEntity(
+                (machineEntity, direction) -> machineEntity.getInventory().item.get(direction),
+                MACHINE_BLOCK_ENTITY
+        );
 
         // REGISTER Block
         Registry.register(Registry.BLOCK, ID_TINY, BLOCK_MACHINE_TINY);

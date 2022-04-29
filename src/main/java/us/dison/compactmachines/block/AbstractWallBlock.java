@@ -95,7 +95,7 @@ public abstract class AbstractWallBlock extends BlockWithEntity {
 
         ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
         ServerWorld machineWorld = world.getServer().getWorld(RegistryKey.of(Registry.WORLD_KEY, room.getWorld()));
-        BlockPos machinePos = room.getMachine();
+        BlockPos machinePos = room.getMachinePos();
 
         if (player.getStackInHand(hand).getItem() instanceof PSDItem) {
             CompactMachines.LOGGER.info("Teleporting player "+player.getDisplayName().asString()+" out of machine #"+room.getNumber()+" at: "+room.getCenter().toShortString());

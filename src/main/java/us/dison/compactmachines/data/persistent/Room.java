@@ -14,7 +14,7 @@ public class Room {
             instance.group(
                             Identifier.CODEC.fieldOf("world").forGetter(Room::getWorld),
                             Codec.STRING.fieldOf("owner").forGetter(Room::getOwner),
-                            BlockPos.CODEC.fieldOf("machine").forGetter(Room::getMachine),
+                            BlockPos.CODEC.fieldOf("machine").forGetter(Room::getMachinePos),
                             BlockPos.CODEC.fieldOf("center").forGetter(Room::getCenter),
                             BlockPos.CODEC.fieldOf("spawnPos").forGetter(Room::getSpawnPos),
                             Codec.INT.fieldOf("number").forGetter(Room::getNumber),
@@ -53,7 +53,7 @@ public class Room {
         return owner;
     }
 
-    public BlockPos getMachine() {
+    public BlockPos getMachinePos() {
         return machine;
     }
 
