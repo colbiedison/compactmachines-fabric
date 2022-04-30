@@ -12,15 +12,5 @@ public class MachineInventory {
         this.item = inv;
     }
 
-//    public void readNbt(NbtElement tag) {
-//        item.readNbt(((NbtCompound) tag).get("item"));
-//    }
-//
-//    public NbtCompound toNbt() {
-//        NbtCompound nbt = new NbtCompound();
-//        nbt.put("item", item.toNbt());
-//
-//        return nbt;
-//    }
 
 }

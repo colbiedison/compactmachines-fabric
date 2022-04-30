@@ -15,7 +15,6 @@ import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.data.persistent.Room;
 import us.dison.compactmachines.data.persistent.RoomManager;
-import us.dison.compactmachines.tunnel.MachineInventory;
 import us.dison.compactmachines.util.RoomUtil;
 
 import java.util.ArrayList;
@@ -26,7 +25,6 @@ public class MachineBlockEntity extends BlockEntity {
 
     private MachineSize size;
     private int machineID = -1;
-    private final MachineInventory inventory = MachineInventory.EMPTY;
     public int lastPlayerCheckTick = -1;
 
     private UUID owner;
@@ -78,8 +76,6 @@ public class MachineBlockEntity extends BlockEntity {
 
         this.machineID = tag.getInt("number");
         this.owner = tag.getUuid("uuid");
-//        this.inventory.readNbt(tag.get("inventories"));
-//        this.inventory.item.set(Direction.NORTH, new SimpleInventory());
     }
 
     @Override
@@ -124,7 +120,4 @@ public class MachineBlockEntity extends BlockEntity {
         this.markDirty();
     }
 
-    public MachineInventory getInventory() {
-        return inventory;
-    }
 }

@@ -8,9 +8,11 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
@@ -34,8 +36,11 @@ import us.dison.compactmachines.block.entity.TunnelWallBlockEntity;
 import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.block.entity.MachineBlockEntity;
 import us.dison.compactmachines.data.persistent.RoomManager;
+import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
 import us.dison.compactmachines.item.PSDItem;
 import us.dison.compactmachines.item.TunnelItem;
+
+import java.util.ArrayList;
 
 public class CompactMachines implements ModInitializer {
 
@@ -139,7 +144,23 @@ public class CompactMachines implements ModInitializer {
 
         // REGISTER Fabric Transfer API blocks
         ItemStorage.SIDED.registerForBlockEntity(
-                (machineEntity, direction) -> machineEntity.getInventory().item.get(direction),
+                (machineEntity, direction) -> {
+                    ArrayList<InventoryStorage> targets = new ArrayList<>();
+                    for (Tunnel tunnel : roomManager.getRoomByNumber(machineEntity.getMachineID()).getTunnels()) {
+                        if (cmWorld.getBlockEntity(tunnel.getPos()) instanceof TunnelWallBlockEntity tunnelEntity) {
+                            tunnelEntity.setConnected(false);
+                            if (tunnel.getFace().toDirection() == null) continue;
+                            if (!tunnel.getFace().toDirection().equals(direction)) continue;
+                            if (tunnelEntity.getInternalTransferTarget() instanceof Inventory inv) {
+                                tunnelEntity.setConnected(true);
+                                targets.add(InventoryStorage.of(inv, null));
+                            }
+                        }
+                    }
+
+                    if (targets.size() < 1) return null;
+                    return targets.get( (int) (Math.random() * targets.size()) );
+                },
                 MACHINE_BLOCK_ENTITY
         );
 

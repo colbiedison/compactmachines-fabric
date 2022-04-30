@@ -1,7 +1,6 @@
 package us.dison.compactmachines.block.entity;
 
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.inventory.Inventory;
@@ -39,17 +38,7 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
 
 
     public static void tick(World world, BlockPos blockPos, BlockState blockState, TunnelWallBlockEntity tunnelBlockEntity) {
-        if (world.isClient()) return;
-        Inventory inv = (Inventory) tunnelBlockEntity.getInternalTransferTarget();
-        if (inv == null) return;
 
-        try {
-            Tunnel tunnel = tunnelBlockEntity.getTunnel();
-            tunnelBlockEntity.getMachineEntity().getInventory().item.set(
-                    tunnel.getFace().toDirection(),
-                    InventoryStorage.of(inv, tunnel.getFace().toDirection().getOpposite())
-            );
-        } catch (Exception ignored) {}
     }
 
     @Override
@@ -99,6 +88,13 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
 
     public void setConnected(boolean connected) {
         isConnected = connected;
+        Tunnel tunnel = getTunnel();
+        CompactMachines.getRoomManager().updateTunnel(getRoom().getNumber(), new Tunnel(
+                tunnel.getPos(),
+                tunnel.getFace(),
+                tunnel.getType(),
+                connected
+        ));
         markDirty();
     }
 

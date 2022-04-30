@@ -3,6 +3,8 @@ package us.dison.compactmachines.tunnel;
 import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.minecraft.util.math.Direction;
 
+import java.util.Arrays;
+
 public class MachineItemInventory {
 
     public static final MachineItemInventory EMPTY = new MachineItemInventory(new InventoryStorage[6]);
@@ -11,23 +13,10 @@ public class MachineItemInventory {
 
     public MachineItemInventory(InventoryStorage[] invs) {
         this.inventories = invs;
+        if (this == EMPTY)
+            Arrays.fill(inventories, null);
     }
 
-//    public void readNbt(NbtElement tag) {
-//        for (Direction dir : Direction.values()) {
-//            if (get(dir) == null) continue;
-//            get(dir).readNbtList( (NbtList)  ( (NbtCompound) tag ).get(dir.asString()) );
-//        }
-//    }
-//
-//    public NbtCompound toNbt() {
-//        NbtCompound nbt = new NbtCompound();
-//        for (Direction dir : Direction.values()) {
-//            if (get(dir) == null) continue;
-//            nbt.put(dir.asString(), get(dir).toNbtList());
-//        }
-//        return nbt;
-//    }
 
     public InventoryStorage get(Direction side) {
         if (side == null) return null;

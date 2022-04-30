@@ -79,7 +79,9 @@ public class TunnelWallBlock extends AbstractWallBlock {
                     } else {
                         BlockState blockState = world.getBlockState(pos);
                         if (blockState.getBlock() instanceof TunnelWallBlock block && hand == Hand.MAIN_HAND) {
-                            Tunnel oldTunnel = block.getTunnel();
+//                            Tunnel oldTunnel = block.getTunnel();
+                            if (!(world.getBlockEntity(pos) instanceof TunnelWallBlockEntity tunnelEntity)) return ActionResult.FAIL;
+                            Tunnel oldTunnel = tunnelEntity.getTunnel();
 //                            block.setTunnel(new Tunnel(oldTunnel.getPos(), oldTunnel.getFace(), oldTunnel.getType(), oldTunnel.isConnected()));
                             TunnelDirection nextSide = TunnelUtil.nextSide(blockState.get(CONNECTED_SIDE));
                             world.setBlockState(pos, blockState.with(CONNECTED_SIDE, nextSide));
