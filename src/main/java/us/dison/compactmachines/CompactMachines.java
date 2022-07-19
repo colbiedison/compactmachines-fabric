@@ -37,6 +37,7 @@ import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.block.entity.MachineBlockEntity;
 import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
+// import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
 import us.dison.compactmachines.item.PSDItem;
 import us.dison.compactmachines.item.TunnelItem;
 
@@ -64,7 +65,9 @@ public class CompactMachines implements ModInitializer {
     public static final Identifier ID_WALL_TUNNEL = new Identifier(MODID, "tunnel_wall");
     public static final Identifier ID_PSD = new Identifier(MODID, "personal_shrinking_device");
     public static final Identifier ID_TUNNEL = new Identifier(MODID, "tunnel");
-
+    public static final Identifier ID_REDSTONE_TUNNEL = new Identifier(MODID, "redstone_tunnel");
+    public static final Identifier ID_ITEM_TUNNEL = new Identifier(MODID, "item_tunnel");
+    public static final Identifier ID_ENERGY_TUNNEL = new Identifier(MODID, "energy_tunnel");
     // Block settings
     public static final FabricBlockSettings SETTINGS_BLOCK_MACHINE = FabricBlockSettings.of(Material.METAL).strength(4.0f).requiresTool();
     public static final FabricBlockSettings SETTINGS_BLOCK_WALL = FabricBlockSettings.of(Material.METAL).strength(4.0f).requiresTool();
@@ -86,9 +89,14 @@ public class CompactMachines implements ModInitializer {
     );
     // Item settings
     public static final FabricItemSettings SETTINGS_ITEM = new FabricItemSettings().group(CM_ITEMGROUP);
+
     // Item
     public static final Item ITEM_PSD = new PSDItem(SETTINGS_ITEM);
-    public static final Item ITEM_TUNNEL = new TunnelItem(SETTINGS_ITEM);
+    public static final Item ITEM_TUNNEL = new TunnelItem(SETTINGS_ITEM); 
+    // TODO: Figure out how to add these without crashing
+    //public static final Item ITEM_ITEM_TUNNEL = new TunnelItem(SETTINGS_ITEM, TunnelType.ITEM);
+    //public static final Item ITEM_REDSTONE_TUNNEL = new TunnelItem(SETTINGS_ITEM, TunnelType.REDSTONE);
+    //public static final Item ITEM_ENERGY_TUNNEL = new TunnelItem(SETTINGS_ITEM, TunnelType.ENERGY);
 
     // BlockEntityType
     public static BlockEntityType<MachineBlockEntity> MACHINE_BLOCK_ENTITY;
@@ -184,10 +192,14 @@ public class CompactMachines implements ModInitializer {
         Registry.register(Registry.ITEM, ID_MAXIMUM,    new BlockItem(Registry.BLOCK.get(ID_MAXIMUM), SETTINGS_ITEM));
         Registry.register(Registry.ITEM, ID_WALL_UNBREAKABLE,   new BlockItem(Registry.BLOCK.get(ID_WALL_UNBREAKABLE), SETTINGS_ITEM));
         Registry.register(Registry.ITEM, ID_WALL,       new BlockItem(Registry.BLOCK.get(ID_WALL), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_WALL_TUNNEL,       new BlockItem(Registry.BLOCK.get(ID_WALL_TUNNEL), SETTINGS_ITEM));
+        // don't add to item group, it crashed my game :frown:
+        Registry.register(Registry.ITEM, ID_WALL_TUNNEL,       new BlockItem(Registry.BLOCK.get(ID_WALL_TUNNEL), new FabricItemSettings()));
         Registry.register(Registry.ITEM, ID_PSD, ITEM_PSD);
         Registry.register(Registry.ITEM, ID_TUNNEL, ITEM_TUNNEL);
-
+        //Registry.register(Registry.ITEM, ID_REDSTONE_TUNNEL, ITEM_REDSTONE_TUNNEL);
+        //Registry.register(Registry.ITEM, ID_ITEM_TUNNEL, ITEM_ITEM_TUNNEL);
+        //Registry.register(Registry.ITEM, ID_ENERGY_TUNNEL, ITEM_ENERGY_TUNNEL);
+        
         LOGGER.info("CompactMachines initialized");
     }
 

@@ -102,7 +102,12 @@ $RECYCLE.BIN/
 
 .gradle
 build/
+bin/
 
+# nvim jdtls stuff 
+.classpath
+.project
+.settings/
 # Ignore Gradle GUI config
 gradle-app.setting
 
