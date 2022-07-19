@@ -17,8 +17,10 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+
 import org.jetbrains.annotations.Nullable;
 import us.dison.compactmachines.CompactMachines;
+import us.dison.compactmachines.block.entity.MachineBlockEntity;
 import us.dison.compactmachines.block.entity.MachineWallBlockEntity;
 import us.dison.compactmachines.block.entity.TunnelWallBlockEntity;
 import us.dison.compactmachines.block.enums.TunnelDirection;
@@ -30,15 +32,24 @@ import us.dison.compactmachines.util.TunnelUtil;
 public class TunnelWallBlock extends AbstractWallBlock {
 
     public static final EnumProperty<TunnelDirection> CONNECTED_SIDE = EnumProperty.of("connected_side", TunnelDirection.class);
-
     private Tunnel tunnel;
 
     public TunnelWallBlock(Settings settings, boolean breakable) {
         super(settings, breakable);
-        setDefaultState(getStateManager().getDefaultState().with(CONNECTED_SIDE, TunnelDirection.NONE));
+        setDefaultState(getStateManager().getDefaultState()
+                .with(CONNECTED_SIDE, TunnelDirection.NONE));
+        
     }
 
-
+    @Override 
+    public void neighborUpdate(BlockState state, World world, BlockPos pos, Block block, BlockPos fromPos, boolean notify) {
+            if (!(world.getBlockEntity(pos) instanceof TunnelWallBlockEntity wall)) return; 
+            final MachineBlockEntity machineBlockEntity = wall.getMachineEntity();
+            final World machineWorld = machineBlockEntity.getWorld();
+            // don't ask
+            machineWorld.updateNeighborsAlways(machineBlockEntity.getPos(), machineWorld.getBlockState(machineBlockEntity.getPos()).getBlock());
+            CompactMachines.LOGGER.info("updating machine block");
+    }
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         super.appendProperties(builder);
@@ -119,5 +130,11 @@ public class TunnelWallBlock extends AbstractWallBlock {
     public Tunnel getTunnel() {
         return tunnel;
     }
+
+    @Override
+    public boolean emitsRedstonePower(BlockState state) {
+        return true;
+    }
+
 
 }

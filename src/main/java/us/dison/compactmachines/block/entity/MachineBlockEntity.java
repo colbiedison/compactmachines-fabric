@@ -10,6 +10,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
+
 import org.jetbrains.annotations.Nullable;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.block.enums.MachineSize;
@@ -26,7 +27,6 @@ public class MachineBlockEntity extends BlockEntity {
     private MachineSize size;
     private int machineID = -1;
     public int lastPlayerCheckTick = -1;
-
     private UUID owner;
     public MachineBlockEntity(BlockPos pos, BlockState state, MachineSize size) {
         this(pos, state);
@@ -65,7 +65,6 @@ public class MachineBlockEntity extends BlockEntity {
 
 
     }
-
     public MachineSize getSize() {
         return size;
     }
@@ -99,8 +98,6 @@ public class MachineBlockEntity extends BlockEntity {
     public NbtCompound toInitialChunkDataNbt() {
         return createNbt();
     }
-
-
 
     public int getMachineID() {
         return machineID;

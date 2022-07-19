@@ -107,6 +107,7 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
     }
 
     public BlockEntity getExtTransferTarget() {
+        if (this.getTunnelType() != TunnelType.ITEM) return null;
         Room room = getRoom();
         BlockPos machinePos = room.getMachinePos();
         try {
@@ -121,6 +122,7 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
     }
 
     public BlockEntity getInternalTransferTarget() {
+        if (this.getTunnelType() != TunnelType.ITEM) return null;
         Room room = getRoom();
         try {
             for (Direction dir : Direction.values()) {

@@ -17,6 +17,7 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.BuiltinRegistries;
@@ -37,7 +38,6 @@ import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.block.entity.MachineBlockEntity;
 import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
-// import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
 import us.dison.compactmachines.item.PSDItem;
 import us.dison.compactmachines.item.TunnelItem;
 
@@ -65,9 +65,6 @@ public class CompactMachines implements ModInitializer {
     public static final Identifier ID_WALL_TUNNEL = new Identifier(MODID, "tunnel_wall");
     public static final Identifier ID_PSD = new Identifier(MODID, "personal_shrinking_device");
     public static final Identifier ID_TUNNEL = new Identifier(MODID, "tunnel");
-    public static final Identifier ID_REDSTONE_TUNNEL = new Identifier(MODID, "redstone_tunnel");
-    public static final Identifier ID_ITEM_TUNNEL = new Identifier(MODID, "item_tunnel");
-    public static final Identifier ID_ENERGY_TUNNEL = new Identifier(MODID, "energy_tunnel");
     // Block settings
     public static final FabricBlockSettings SETTINGS_BLOCK_MACHINE = FabricBlockSettings.of(Material.METAL).strength(4.0f).requiresTool();
     public static final FabricBlockSettings SETTINGS_BLOCK_WALL = FabricBlockSettings.of(Material.METAL).strength(4.0f).requiresTool();
@@ -81,22 +78,50 @@ public class CompactMachines implements ModInitializer {
     public static final MachineWallBlock BLOCK_WALL_UNBREAKABLE = new MachineWallBlock(SETTINGS_BLOCK_WALL, false);
     public static final MachineWallBlock BLOCK_WALL = new MachineWallBlock(SETTINGS_BLOCK_WALL, true);
     public static final TunnelWallBlock BLOCK_WALL_TUNNEL = new TunnelWallBlock(SETTINGS_BLOCK_WALL, false);
+   
+    // Item Settings
+    public static final FabricItemSettings SETTINGS_ITEM = new FabricItemSettings();
+    // Item
+    public static final Item ITEM_TUNNEL = new TunnelItem(SETTINGS_ITEM); 
+    public static final Item ITEM_PSD = new PSDItem(SETTINGS_ITEM);
+    public static final Item ITEM_MACHINE_TINY = new BlockItem(BLOCK_MACHINE_TINY, SETTINGS_ITEM);
+    public static final Item ITEM_MACHINE_SMALL = new BlockItem(BLOCK_MACHINE_SMALL, SETTINGS_ITEM);
+    public static final Item ITEM_MACHINE_NORMAL = new BlockItem(BLOCK_MACHINE_NORMAL, SETTINGS_ITEM);
+    public static final Item ITEM_MACHINE_LARGE = new BlockItem(BLOCK_MACHINE_LARGE, SETTINGS_ITEM);
+    public static final Item ITEM_MACHINE_GIANT = new BlockItem(BLOCK_MACHINE_GIANT, SETTINGS_ITEM);
+    public static final Item ITEM_MACHINE_MAXIMUM = new BlockItem(BLOCK_MACHINE_MAXIMUM, SETTINGS_ITEM);
+    public static final Item ITEM_WALL_UNBREAKABLE = new BlockItem(BLOCK_WALL_UNBREAKABLE, SETTINGS_ITEM);
+    public static final Item ITEM_WALL = new BlockItem(BLOCK_WALL, SETTINGS_ITEM);
+    public static final Item ITEM_WALL_TUNNEL = new BlockItem(BLOCK_WALL_TUNNEL, SETTINGS_ITEM);
+
 
     // Item group
-    public static final ItemGroup CM_ITEMGROUP = FabricItemGroupBuilder.build(
-            new Identifier(MODID, "title"),
-            () -> new ItemStack(BLOCK_MACHINE_NORMAL)
-    );
-    // Item settings
-    public static final FabricItemSettings SETTINGS_ITEM = new FabricItemSettings().group(CM_ITEMGROUP);
+    public static final ItemGroup CM_ITEMGROUP = FabricItemGroupBuilder.create(
+            new Identifier(MODID, "title"))
+            .icon(() -> new ItemStack(BLOCK_MACHINE_NORMAL))
+            .appendItems(stacks -> {
+                final ItemStack redstoneStack = new ItemStack(ITEM_TUNNEL);
+                redstoneStack.setSubNbt("type", NbtString.of("Redstone"));
+                final ItemStack itemStack = new ItemStack(ITEM_TUNNEL);
+                itemStack.setSubNbt("type", NbtString.of("Item"));
+                final ItemStack energyStack = new ItemStack(ITEM_TUNNEL);
+                energyStack.setSubNbt("type", NbtString.of("Energy"));
+                stacks.add(new ItemStack(ITEM_PSD));
+                stacks.add(new ItemStack(ITEM_MACHINE_TINY));
+                stacks.add(new ItemStack(ITEM_MACHINE_SMALL));
+                stacks.add(new ItemStack(ITEM_MACHINE_NORMAL));
+                stacks.add(new ItemStack(ITEM_MACHINE_LARGE));
+                stacks.add(new ItemStack(ITEM_MACHINE_GIANT));
+                stacks.add(new ItemStack(ITEM_MACHINE_MAXIMUM));
+                stacks.add(new ItemStack(ITEM_WALL_UNBREAKABLE));
+                stacks.add(new ItemStack(ITEM_WALL));
+                // omitting Wall Tunnel on purpose
+                stacks.add(redstoneStack);
+                stacks.add(itemStack);
+                stacks.add(energyStack);
+            })
+            .build();
 
-    // Item
-    public static final Item ITEM_PSD = new PSDItem(SETTINGS_ITEM);
-    public static final Item ITEM_TUNNEL = new TunnelItem(SETTINGS_ITEM); 
-    // TODO: Figure out how to add these without crashing
-    //public static final Item ITEM_ITEM_TUNNEL = new TunnelItem(SETTINGS_ITEM, TunnelType.ITEM);
-    //public static final Item ITEM_REDSTONE_TUNNEL = new TunnelItem(SETTINGS_ITEM, TunnelType.REDSTONE);
-    //public static final Item ITEM_ENERGY_TUNNEL = new TunnelItem(SETTINGS_ITEM, TunnelType.ENERGY);
 
     // BlockEntityType
     public static BlockEntityType<MachineBlockEntity> MACHINE_BLOCK_ENTITY;
@@ -184,16 +209,15 @@ public class CompactMachines implements ModInitializer {
         Registry.register(Registry.BLOCK, ID_WALL_TUNNEL, BLOCK_WALL_TUNNEL);
 
         // REGISTER Item
-        Registry.register(Registry.ITEM, ID_TINY,       new BlockItem(Registry.BLOCK.get(ID_TINY), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_SMALL,      new BlockItem(Registry.BLOCK.get(ID_SMALL), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_NORMAL,     new BlockItem(Registry.BLOCK.get(ID_NORMAL), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_LARGE,      new BlockItem(Registry.BLOCK.get(ID_LARGE), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_GIANT,      new BlockItem(Registry.BLOCK.get(ID_GIANT), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_MAXIMUM,    new BlockItem(Registry.BLOCK.get(ID_MAXIMUM), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_WALL_UNBREAKABLE,   new BlockItem(Registry.BLOCK.get(ID_WALL_UNBREAKABLE), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_WALL,       new BlockItem(Registry.BLOCK.get(ID_WALL), SETTINGS_ITEM));
-        // don't add to item group, it crashed my game :frown:
-        Registry.register(Registry.ITEM, ID_WALL_TUNNEL,       new BlockItem(Registry.BLOCK.get(ID_WALL_TUNNEL), new FabricItemSettings()));
+        Registry.register(Registry.ITEM, ID_TINY,       ITEM_MACHINE_TINY);
+        Registry.register(Registry.ITEM, ID_SMALL,      ITEM_MACHINE_SMALL);
+        Registry.register(Registry.ITEM, ID_NORMAL,     ITEM_MACHINE_NORMAL);
+        Registry.register(Registry.ITEM, ID_LARGE,      ITEM_MACHINE_LARGE);
+        Registry.register(Registry.ITEM, ID_GIANT,      ITEM_MACHINE_GIANT);
+        Registry.register(Registry.ITEM, ID_MAXIMUM,    ITEM_MACHINE_MAXIMUM);
+        Registry.register(Registry.ITEM, ID_WALL_UNBREAKABLE, ITEM_WALL_UNBREAKABLE);
+        Registry.register(Registry.ITEM, ID_WALL,       ITEM_WALL);
+        Registry.register(Registry.ITEM, ID_WALL_TUNNEL,ITEM_WALL_TUNNEL);
         Registry.register(Registry.ITEM, ID_PSD, ITEM_PSD);
         Registry.register(Registry.ITEM, ID_TUNNEL, ITEM_TUNNEL);
         //Registry.register(Registry.ITEM, ID_REDSTONE_TUNNEL, ITEM_REDSTONE_TUNNEL);

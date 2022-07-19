@@ -17,6 +17,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -25,14 +26,15 @@ import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.block.entity.MachineBlockEntity;
 import us.dison.compactmachines.data.persistent.Room;
 import us.dison.compactmachines.data.persistent.RoomManager;
+import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
+import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
 import us.dison.compactmachines.item.PSDItem;
 import us.dison.compactmachines.util.RoomUtil;
 
 import java.util.ArrayList;
 
-
 public class MachineBlock extends BlockWithEntity {
-
+   
     public final MachineSize size;
 
     private int lastPlayerInsideWarning;
@@ -41,7 +43,6 @@ public class MachineBlock extends BlockWithEntity {
         super(settings);
         this.size = machineSize;
     }
-
     @SuppressWarnings("deprecation")
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
@@ -53,11 +54,12 @@ public class MachineBlock extends BlockWithEntity {
             if (!(player instanceof ServerPlayerEntity serverPlayer)) return ActionResult.PASS;
 
             if (serverPlayer.getStackInHand(hand).getItem() instanceof PSDItem) {
+                // this code is to work around exiting, which is busted
                 if (world == CompactMachines.cmWorld) {
                     serverPlayer.sendMessage(new TranslatableText("message.compactmachines.cannot_enter"), false);
                     return ActionResult.PASS;
                 }
-
+                
                 RoomManager roomManager = CompactMachines.getRoomManager();
 
                 if (blockEntity.getMachineID() == -1) { // make new room
@@ -82,6 +84,9 @@ public class MachineBlock extends BlockWithEntity {
                     CompactMachines.LOGGER.info("Teleporting player "+player.getDisplayName().asString()+" into machine #"+blockEntity.getMachineID()+" at: "+spawnPos.toShortString());
                     serverPlayer.teleport(CompactMachines.cmWorld, spawnPos.getX()+0.5d, spawnPos.getY()+1d, spawnPos.getZ()+0.5d, 0, 0);
                     roomManager.addPlayer(id, serverPlayer.getUuidAsString());
+                    if (world == CompactMachines.cmWorld) {
+                        
+                    }
                     return ActionResult.SUCCESS;
                 }
             } else {
@@ -192,6 +197,53 @@ public class MachineBlock extends BlockWithEntity {
         }
 
         return original;
+    }
+    @Override 
+    public void neighborUpdate(BlockState state, World world,BlockPos pos, Block block, BlockPos fromPos,  boolean notify) {
+        if (notify) {
+            // todo: input
+        }
+    }
+    @Override 
+    public boolean emitsRedstonePower(BlockState state) {
+        return true;
+    }
+    @Override 
+    public int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
+        RoomManager roomManager = CompactMachines.getRoomManager();
+        if (world.getBlockEntity(pos) instanceof MachineBlockEntity machineBlockEntity
+                && roomManager.getRoomByNumber(machineBlockEntity.getMachineID()) != null) {
+            for (Tunnel tunnel : roomManager.getRoomByNumber(machineBlockEntity.getMachineID()).getTunnels()) {
+                if (tunnel.getFace().toDirection() != direction.getOpposite()) continue;
+                if (tunnel.getType() != TunnelType.REDSTONE) continue;
+                final int power = CompactMachines.cmWorld.getReceivedRedstonePower(tunnel.getPos());
+                CompactMachines.LOGGER.info("power:" + power + ", at " + tunnel.getPos().toShortString());
+                return power;
+            }
+        }
+        return 0;
+    }
+    @Nullable 
+    private Tunnel getTunnelOf(BlockPos pos, BlockView world, Direction direction, TunnelType tunnelType) {
+        RoomManager roomManager = CompactMachines.getRoomManager();
+        if (world.getBlockEntity(pos) instanceof MachineBlockEntity machineBlockEntity 
+                && roomManager.getRoomByNumber(machineBlockEntity.getMachineID()) != null) {
+            for (Tunnel tunnel : roomManager.getRoomByNumber(machineBlockEntity.getMachineID()).getTunnels()) {
+                if (tunnel.getFace().toDirection() == direction 
+                        && tunnel.getType() == tunnelType)
+                    return tunnel; 
+            }            
+        }
+        return null;
+    }
+    @Nullable
+    public MachineBlockEntity getMachineEntity(BlockPos pos, BlockView world) {
+        RoomManager roomManager = CompactMachines.getRoomManager();
+        if (world.getBlockEntity(pos) instanceof MachineBlockEntity machineBlockEntity
+                && roomManager.getRoomByNumber(machineBlockEntity.getMachineID()) != null) {
+                    return machineBlockEntity;
+                }
+        return null;
     }
 
 }
