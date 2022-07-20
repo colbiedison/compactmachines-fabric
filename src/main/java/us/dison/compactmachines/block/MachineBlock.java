@@ -39,7 +39,7 @@ public class MachineBlock extends BlockWithEntity {
     public final MachineSize size;
 
     private int lastPlayerInsideWarning;
-
+    public static boolean doPassWires = true;
     public MachineBlock(Settings settings, MachineSize machineSize) {
         super(settings);
         this.size = machineSize;
@@ -201,9 +201,19 @@ public class MachineBlock extends BlockWithEntity {
     }
     @Override 
     public void neighborUpdate(BlockState state, World world,BlockPos pos, Block block, BlockPos fromPos,  boolean notify) {
-        if (notify) {
-            // todo: input
+        final RoomManager roomManager = CompactMachines.getRoomManager();
+        if (world.getBlockEntity(pos) instanceof MachineBlockEntity machineBlockEntity
+                && roomManager.getRoomByNumber(machineBlockEntity.getMachineID()) != null) {
+            for (Tunnel tunnel : roomManager.getRoomByNumber(machineBlockEntity.getMachineID()).getTunnels()) {
+                if (tunnel.getFace().toDirection() == null) continue;
+                if (tunnel.getType() != TunnelType.REDSTONE) continue;
+                // makes sense because only 1 wall tunnel instance exists
+                doPassWires = false;
+                CompactMachines.cmWorld.updateNeighborsAlways(tunnel.getPos(), CompactMachines.BLOCK_WALL_TUNNEL); 
+                doPassWires = true;
+            }
         }
+
     }
     @Override 
     public boolean emitsRedstonePower(BlockState state) {
@@ -217,7 +227,7 @@ public class MachineBlock extends BlockWithEntity {
             for (Tunnel tunnel : roomManager.getRoomByNumber(machineBlockEntity.getMachineID()).getTunnels()) {
                 if (tunnel.getFace().toDirection() != direction.getOpposite()) continue;
                 if (tunnel.getType() != TunnelType.REDSTONE) continue;
-                final int power = RedstoneUtil.getPower(CompactMachines.cmWorld, tunnel.getPos());
+                final int power = RedstoneUtil.getPower(CompactMachines.cmWorld, tunnel.getPos(), doPassWires);
                 CompactMachines.LOGGER.info("power:" + power + ", at " + tunnel.getPos().toShortString());
                 return power;
             }

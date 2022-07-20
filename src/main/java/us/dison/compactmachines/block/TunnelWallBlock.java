@@ -16,6 +16,8 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
 import org.jetbrains.annotations.Nullable;
@@ -27,13 +29,13 @@ import us.dison.compactmachines.block.enums.TunnelDirection;
 import us.dison.compactmachines.data.persistent.Room;
 import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
+import us.dison.compactmachines.util.RedstoneUtil;
 import us.dison.compactmachines.util.TunnelUtil;
 
 public class TunnelWallBlock extends AbstractWallBlock {
 
     public static final EnumProperty<TunnelDirection> CONNECTED_SIDE = EnumProperty.of("connected_side", TunnelDirection.class);
     private Tunnel tunnel;
-
     public TunnelWallBlock(Settings settings, boolean breakable) {
         super(settings, breakable);
         setDefaultState(getStateManager().getDefaultState()
@@ -47,7 +49,9 @@ public class TunnelWallBlock extends AbstractWallBlock {
             final MachineBlockEntity machineBlockEntity = wall.getMachineEntity();
             final World machineWorld = machineBlockEntity.getWorld();
             // don't ask
+            MachineBlock.doPassWires = false;
             machineWorld.updateNeighborsAlways(machineBlockEntity.getPos(), machineWorld.getBlockState(machineBlockEntity.getPos()).getBlock());
+            MachineBlock.doPassWires = true;
             CompactMachines.LOGGER.info("updating machine block");
     }
     @Override
@@ -136,7 +140,16 @@ public class TunnelWallBlock extends AbstractWallBlock {
         return true;
     
     }
-
+    
+    @Override 
+    public int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction _dir) {
+        if (!(world.getBlockEntity(pos) instanceof TunnelWallBlockEntity wall)) return 0;
+        
+        final MachineBlockEntity machine = wall.getMachineEntity();
+        final World machineWorld = machine.getWorld();
+        final Direction connectedSide = state.get(CONNECTED_SIDE).toDirection();
+        return RedstoneUtil.getDirectionalPower(machineWorld, machine.getPos(), connectedSide, MachineBlock.doPassWires);
+    }
 
 
 }
