@@ -1,6 +1,7 @@
 package us.dison.compactmachines.block.entity;
 
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.inventory.Inventory;
@@ -18,6 +19,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
+
 import org.jetbrains.annotations.Nullable;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.block.enums.TunnelDirection;
@@ -31,7 +33,7 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
 
     private String strType = "";
     private boolean isConnected = false;
-
+    private boolean outgoing = false; 
     public TunnelWallBlockEntity(BlockPos pos, BlockState state) {
         super(CompactMachines.TUNNEL_WALL_BLOCK_ENTITY, pos, state);
     }
@@ -47,19 +49,20 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
 
         this.strType = tag.getString("type");
         this.isConnected = tag.getBoolean("isConnected");
+        this.outgoing = tag.getBoolean("outgoing");
     }
 
     @Override
     protected void writeNbt(NbtCompound tag) {
         tag.putBoolean("isConnected", this.isConnected);
         tag.putString("type", this.strType);
-
+        tag.putBoolean("outgoing", this.outgoing);
         super.writeNbt(tag);
     }
 
     @Override
     public Object getRenderAttachmentData() {
-        return new RenderAttachmentData(getTunnelType(), isConnected());
+        return new RenderAttachmentData(getTunnelType(), isConnected(), isOutgoing());
     }
 
     @Nullable
@@ -93,11 +96,27 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
                 tunnel.getPos(),
                 tunnel.getFace(),
                 tunnel.getType(),
-                connected
+                connected,
+                tunnel.isOutgoing()
         ));
         markDirty();
     }
-
+    public boolean isOutgoing() {
+        return outgoing;
+    }
+    public void setOutgoing(boolean outgoing) {
+        this.outgoing = outgoing;
+        Tunnel tunnel = getTunnel();
+        CompactMachines.getRoomManager().updateTunnel(getRoom().getNumber(), new Tunnel(
+                    tunnel.getPos(),
+                    tunnel.getFace(),
+                    tunnel.getType(),
+                    tunnel.isConnected(),
+                    outgoing
+        ));
+        markDirty();
+        this.world.updateListeners(this.getPos(), this.getCachedState(), this.getCachedState(), Block.NOTIFY_ALL);
+    }
     public void setStrType(String strType) {
         this.strType = strType;
     }
@@ -182,10 +201,11 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
     public class RenderAttachmentData {
         private final TunnelType type;
         private final boolean isConnected;
-
-        private RenderAttachmentData(TunnelType type, boolean isConnected) {
+        private final boolean isOutgoing;
+        private RenderAttachmentData(TunnelType type, boolean isConnected, boolean isOutgoing) {
             this.type = type;
             this.isConnected = isConnected;
+            this.isOutgoing = isOutgoing;
         }
 
         public TunnelType getType() {
@@ -194,6 +214,9 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
 
         public boolean isConnected() {
             return isConnected;
+        }
+        public boolean isOutgoing() {
+            return isOutgoing;
         }
     }
 }

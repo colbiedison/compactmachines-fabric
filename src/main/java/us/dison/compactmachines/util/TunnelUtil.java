@@ -41,7 +41,8 @@ public class TunnelUtil {
                 t.getPos(),
                 nextSide(t.getFace()),
                 t.getType(),
-                t.isConnected()
+                t.isConnected(),
+                t.isOutgoing()
         );
     }
 

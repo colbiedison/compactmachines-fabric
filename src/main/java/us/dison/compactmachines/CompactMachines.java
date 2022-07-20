@@ -27,6 +27,7 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeEffects;
 import net.minecraft.world.biome.GenerationSettings;
 import net.minecraft.world.biome.SpawnSettings;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import us.dison.compactmachines.block.MachineBlock;
@@ -38,6 +39,7 @@ import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.block.entity.MachineBlockEntity;
 import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
+import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
 import us.dison.compactmachines.item.PSDItem;
 import us.dison.compactmachines.item.TunnelItem;
 
@@ -101,11 +103,11 @@ public class CompactMachines implements ModInitializer {
             .icon(() -> new ItemStack(BLOCK_MACHINE_NORMAL))
             .appendItems(stacks -> {
                 final ItemStack redstoneStack = new ItemStack(ITEM_TUNNEL);
-                redstoneStack.setSubNbt("type", NbtString.of("Redstone"));
+                redstoneStack.setSubNbt("type", NbtString.of(TunnelType.REDSTONE.getName()));
                 final ItemStack itemStack = new ItemStack(ITEM_TUNNEL);
-                itemStack.setSubNbt("type", NbtString.of("Item"));
+                itemStack.setSubNbt("type", NbtString.of(TunnelType.ITEM.getName()));
                 final ItemStack energyStack = new ItemStack(ITEM_TUNNEL);
-                energyStack.setSubNbt("type", NbtString.of("Energy"));
+                energyStack.setSubNbt("type", NbtString.of(TunnelType.ENERGY.getName()));
                 stacks.add(new ItemStack(ITEM_PSD));
                 stacks.add(new ItemStack(ITEM_MACHINE_TINY));
                 stacks.add(new ItemStack(ITEM_MACHINE_SMALL));
@@ -220,10 +222,7 @@ public class CompactMachines implements ModInitializer {
         Registry.register(Registry.ITEM, ID_WALL_TUNNEL,ITEM_WALL_TUNNEL);
         Registry.register(Registry.ITEM, ID_PSD, ITEM_PSD);
         Registry.register(Registry.ITEM, ID_TUNNEL, ITEM_TUNNEL);
-        //Registry.register(Registry.ITEM, ID_REDSTONE_TUNNEL, ITEM_REDSTONE_TUNNEL);
-        //Registry.register(Registry.ITEM, ID_ITEM_TUNNEL, ITEM_ITEM_TUNNEL);
-        //Registry.register(Registry.ITEM, ID_ENERGY_TUNNEL, ITEM_ENERGY_TUNNEL);
-        
+       
         LOGGER.info("CompactMachines initialized");
     }
 

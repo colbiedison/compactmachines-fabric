@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.block.entity.MachineBlockEntity;
+import us.dison.compactmachines.block.entity.TunnelWallBlockEntity;
 import us.dison.compactmachines.data.persistent.Room;
 import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
@@ -39,7 +40,6 @@ public class MachineBlock extends BlockWithEntity {
     public final MachineSize size;
 
     private int lastPlayerInsideWarning;
-    public static boolean doPassWires = true;
     public MachineBlock(Settings settings, MachineSize machineSize) {
         super(settings);
         this.size = machineSize;
@@ -208,9 +208,7 @@ public class MachineBlock extends BlockWithEntity {
                 if (tunnel.getFace().toDirection() == null) continue;
                 if (tunnel.getType() != TunnelType.REDSTONE) continue;
                 // makes sense because only 1 wall tunnel instance exists
-                TunnelWallBlock.doPassWires = false;
                 CompactMachines.cmWorld.updateNeighborsAlways(tunnel.getPos(), CompactMachines.BLOCK_WALL_TUNNEL); 
-                TunnelWallBlock.doPassWires = true;
             }
         }
 
@@ -223,7 +221,9 @@ public class MachineBlock extends BlockWithEntity {
     public int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
         Tunnel tunnel = getTunnelOf(pos, world, direction.getOpposite(), TunnelType.REDSTONE);
         if (tunnel != null) {
-            return RedstoneUtil.getPower(CompactMachines.cmWorld, tunnel.getPos(), doPassWires);
+            if (!(CompactMachines.cmWorld.getBlockEntity(tunnel.getPos()) instanceof TunnelWallBlockEntity tunnelEntity)) return 0;
+            if (!tunnelEntity.isOutgoing()) return 0;
+            return RedstoneUtil.getPower(CompactMachines.cmWorld, tunnel.getPos());
         }
         return 0;
     }

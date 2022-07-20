@@ -12,7 +12,8 @@ public class Tunnel {
                 BlockPos.CODEC.fieldOf("pos").forGetter(Tunnel::getPos),
                 TunnelDirection.CODEC.fieldOf("face").forGetter(Tunnel::getFace),
                 TunnelType.CODEC.fieldOf("type").forGetter(Tunnel::getType),
-                Codec.BOOL.fieldOf("isConnected").forGetter(Tunnel::isConnected)
+                Codec.BOOL.fieldOf("isConnected").forGetter(Tunnel::isConnected),
+                Codec.BOOL.fieldOf("outgoing").forGetter(Tunnel::isOutgoing)
         )
         .apply(instance, Tunnel::new)
     );
@@ -21,12 +22,13 @@ public class Tunnel {
     private final TunnelType type;
     private TunnelDirection face;
     private boolean isConnected;
-
-    public Tunnel(BlockPos pos, TunnelDirection face, TunnelType type, boolean isConnected) {
+    private boolean outgoing;
+    public Tunnel(BlockPos pos, TunnelDirection face, TunnelType type, boolean isConnected, boolean outgoing) {
         this.pos = pos;
         this.face = face;
         this.type = type;
         this.isConnected = isConnected;
+        this.outgoing = outgoing;
     }
 
     @Override
@@ -67,5 +69,7 @@ public class Tunnel {
     public boolean isConnected() {
         return isConnected;
     }
-
+    public boolean isOutgoing() {
+        return outgoing;
+    }
 }

@@ -73,6 +73,7 @@ public abstract class AbstractWallBlock extends BlockWithEntity {
                             wall.getPos(),
                             TunnelDirection.NONE,
                             type,
+                            false,
                             false
                     );
                     roomManager.addTunnel(room.getNumber(), tunnel);
