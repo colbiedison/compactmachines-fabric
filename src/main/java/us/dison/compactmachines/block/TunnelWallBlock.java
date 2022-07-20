@@ -36,6 +36,7 @@ public class TunnelWallBlock extends AbstractWallBlock {
 
     public static final EnumProperty<TunnelDirection> CONNECTED_SIDE = EnumProperty.of("connected_side", TunnelDirection.class);
     private Tunnel tunnel;
+    public static boolean doPassWires = true; 
     public TunnelWallBlock(Settings settings, boolean breakable) {
         super(settings, breakable);
         setDefaultState(getStateManager().getDefaultState()
@@ -45,14 +46,13 @@ public class TunnelWallBlock extends AbstractWallBlock {
 
     @Override 
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block block, BlockPos fromPos, boolean notify) {
-            if (!(world.getBlockEntity(pos) instanceof TunnelWallBlockEntity wall)) return; 
-            final MachineBlockEntity machineBlockEntity = wall.getMachineEntity();
-            final World machineWorld = machineBlockEntity.getWorld();
-            // don't ask
-            MachineBlock.doPassWires = false;
-            machineWorld.updateNeighborsAlways(machineBlockEntity.getPos(), machineWorld.getBlockState(machineBlockEntity.getPos()).getBlock());
-            MachineBlock.doPassWires = true;
-            CompactMachines.LOGGER.info("updating machine block");
+        if (!(world.getBlockEntity(pos) instanceof TunnelWallBlockEntity wall)) return; 
+        final MachineBlockEntity machineBlockEntity = wall.getMachineEntity();
+        final World machineWorld = machineBlockEntity.getWorld();
+        // don't ask
+        MachineBlock.doPassWires = false;
+        machineWorld.updateNeighborsAlways(machineBlockEntity.getPos(), machineWorld.getBlockState(machineBlockEntity.getPos()).getBlock());
+        MachineBlock.doPassWires = true;
     }
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
@@ -140,16 +140,26 @@ public class TunnelWallBlock extends AbstractWallBlock {
         return true;
     
     }
-    
+    @Override 
+    public int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction _dir) {
+        return getWeakRedstonePower(state, world, pos, _dir);
+    }
     @Override 
     public int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction _dir) {
         if (!(world.getBlockEntity(pos) instanceof TunnelWallBlockEntity wall)) return 0;
-        
+ 
         final MachineBlockEntity machine = wall.getMachineEntity();
+        if (machine == null) {
+            CompactMachines.LOGGER.warn("Machine owner of tunnel is null");
+            return 0; 
+        }
         final World machineWorld = machine.getWorld();
+        if (machineWorld == null) {
+            CompactMachines.LOGGER.warn("Machine world is null");
+        }
         final Direction connectedSide = state.get(CONNECTED_SIDE).toDirection();
-        return RedstoneUtil.getDirectionalPower(machineWorld, machine.getPos(), connectedSide, MachineBlock.doPassWires);
-    }
+        return RedstoneUtil.getDirectionalPower(machineWorld, machine.getPos(), connectedSide, doPassWires); 
+   }
 
 
 }

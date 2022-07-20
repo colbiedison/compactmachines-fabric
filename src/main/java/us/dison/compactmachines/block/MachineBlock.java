@@ -208,9 +208,9 @@ public class MachineBlock extends BlockWithEntity {
                 if (tunnel.getFace().toDirection() == null) continue;
                 if (tunnel.getType() != TunnelType.REDSTONE) continue;
                 // makes sense because only 1 wall tunnel instance exists
-                doPassWires = false;
+                TunnelWallBlock.doPassWires = false;
                 CompactMachines.cmWorld.updateNeighborsAlways(tunnel.getPos(), CompactMachines.BLOCK_WALL_TUNNEL); 
-                doPassWires = true;
+                TunnelWallBlock.doPassWires = true;
             }
         }
 
@@ -221,16 +221,9 @@ public class MachineBlock extends BlockWithEntity {
     }
     @Override 
     public int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        RoomManager roomManager = CompactMachines.getRoomManager();
-        if (world.getBlockEntity(pos) instanceof MachineBlockEntity machineBlockEntity
-                && roomManager.getRoomByNumber(machineBlockEntity.getMachineID()) != null) {
-            for (Tunnel tunnel : roomManager.getRoomByNumber(machineBlockEntity.getMachineID()).getTunnels()) {
-                if (tunnel.getFace().toDirection() != direction.getOpposite()) continue;
-                if (tunnel.getType() != TunnelType.REDSTONE) continue;
-                final int power = RedstoneUtil.getPower(CompactMachines.cmWorld, tunnel.getPos(), doPassWires);
-                CompactMachines.LOGGER.info("power:" + power + ", at " + tunnel.getPos().toShortString());
-                return power;
-            }
+        Tunnel tunnel = getTunnelOf(pos, world, direction.getOpposite(), TunnelType.REDSTONE);
+        if (tunnel != null) {
+            return RedstoneUtil.getPower(CompactMachines.cmWorld, tunnel.getPos(), doPassWires);
         }
         return 0;
     }
