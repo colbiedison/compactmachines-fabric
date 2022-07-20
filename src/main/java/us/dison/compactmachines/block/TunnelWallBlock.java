@@ -134,7 +134,9 @@ public class TunnelWallBlock extends AbstractWallBlock {
     @Override
     public boolean emitsRedstonePower(BlockState state) {
         return true;
+    
     }
+
 
 
 }

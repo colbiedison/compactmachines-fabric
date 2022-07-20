@@ -29,6 +29,7 @@ import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
 import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
 import us.dison.compactmachines.item.PSDItem;
+import us.dison.compactmachines.util.RedstoneUtil;
 import us.dison.compactmachines.util.RoomUtil;
 
 import java.util.ArrayList;
@@ -216,7 +217,7 @@ public class MachineBlock extends BlockWithEntity {
             for (Tunnel tunnel : roomManager.getRoomByNumber(machineBlockEntity.getMachineID()).getTunnels()) {
                 if (tunnel.getFace().toDirection() != direction.getOpposite()) continue;
                 if (tunnel.getType() != TunnelType.REDSTONE) continue;
-                final int power = CompactMachines.cmWorld.getReceivedRedstonePower(tunnel.getPos());
+                final int power = RedstoneUtil.getPower(CompactMachines.cmWorld, tunnel.getPos());
                 CompactMachines.LOGGER.info("power:" + power + ", at " + tunnel.getPos().toShortString());
                 return power;
             }
