@@ -12,7 +12,9 @@ public class Tunnel {
                 BlockPos.CODEC.fieldOf("pos").forGetter(Tunnel::getPos),
                 TunnelDirection.CODEC.fieldOf("face").forGetter(Tunnel::getFace),
                 TunnelType.CODEC.fieldOf("type").forGetter(Tunnel::getType),
-                Codec.BOOL.fieldOf("isConnected").forGetter(Tunnel::isConnected),
+                Codec.BOOL.fieldOf("connectedToFluid").forGetter(Tunnel::isConnectedToFluid),
+                Codec.BOOL.fieldOf("connectedToItem").forGetter(Tunnel::isConnectedToItem),
+                Codec.BOOL.fieldOf("connectedToEnergy").forGetter(Tunnel::isConnectedToEnergy),
                 Codec.BOOL.fieldOf("outgoing").forGetter(Tunnel::isOutgoing)
         )
         .apply(instance, Tunnel::new)
@@ -21,20 +23,24 @@ public class Tunnel {
     private final BlockPos pos;
     private final TunnelType type;
     private TunnelDirection face;
-    private boolean isConnected;
+    private boolean connectedToItem;
+    private boolean connectedToFluid;
+    private boolean connectedToEnergy;
     private boolean outgoing;
-    public Tunnel(BlockPos pos, TunnelDirection face, TunnelType type, boolean isConnected, boolean outgoing) {
+    public Tunnel(BlockPos pos, TunnelDirection face, TunnelType type, boolean connectedToFluid, boolean connectedToItem, boolean connectedToEnergy, boolean outgoing) {
         this.pos = pos;
         this.face = face;
         this.type = type;
-        this.isConnected = isConnected;
+        this.connectedToItem = connectedToItem;
+        this.connectedToFluid = connectedToFluid;
+        this.connectedToEnergy = connectedToEnergy;
         this.outgoing = outgoing;
     }
 
     @Override
     public String toString() {
-        return String.format("Tunnel { pos: %s, face: %s, type: %s, isConnected: %s }",
-                pos.toString(), face.asString(), type.asString(), isConnected ? "true" : "false"
+        return String.format("Tunnel { pos: %s, face: %s, type: %s, connectedToItem: %b, connectedToFluid: %b, connectedToEnergy: %b  }",
+                pos.toString(), face.asString(), type.asString(), connectedToItem, connectedToFluid, connectedToEnergy
         );
     }
 
@@ -48,7 +54,9 @@ public class Tunnel {
                 this.getPos().getZ() == other.getPos().getZ() &&
                 this.getFace().name().equals(other.getFace().name()) &&
                 this.getType().name().equals(other.getType().name()) &&
-                this.isConnected() == other.isConnected()
+                this.isConnectedToItem() == other.isConnectedToItem() &&
+                this.isConnectedToFluid() == other.isConnectedToFluid() &&
+                this.isConnectedToEnergy() == other.isConnectedToEnergy()
         ) return true;
 
         return false;
@@ -66,10 +74,68 @@ public class Tunnel {
         return face;
     }
 
-    public boolean isConnected() {
-        return isConnected;
+    public boolean isConnectedToItem() {
+        return connectedToItem;
+    }
+    public boolean isConnectedToFluid() {
+        return connectedToFluid;
+    }
+    public boolean isConnectedToEnergy() {
+        return connectedToEnergy;
     }
     public boolean isOutgoing() {
         return outgoing;
     }
+    public Tunnel withConnectedToItem(boolean connected) {
+        return new Tunnel(
+                pos,
+                face,
+                type,
+                connectedToFluid,
+                connected,
+                connectedToEnergy,
+                outgoing);
+    }
+    public Tunnel withConnectedToFluid(boolean connected) {
+        return new Tunnel(
+                pos,
+                face,
+                type,
+                connected,
+                connectedToItem,
+                connectedToEnergy,
+                outgoing);
+    }
+    public Tunnel withConnectedToEnergy(boolean connected) {
+        return new Tunnel(
+                pos,
+                face,
+                type,
+                connectedToFluid,
+                connectedToItem,
+                connected,
+                outgoing);
+    }
+    public Tunnel withOutgoing(boolean outgoing) {
+        return new Tunnel(
+                this.pos,
+                this.face,
+                this.type,
+                this.connectedToFluid,
+                this.connectedToItem,
+                this.connectedToEnergy,
+                outgoing);
+    }
+    public Tunnel withFace(TunnelDirection face) {
+        return new Tunnel(
+                this.getPos(),
+                face,
+                this.getType(),
+                this.isConnectedToFluid(),
+                this.isConnectedToItem(),
+                this.isConnectedToEnergy(),
+                this.isOutgoing()
+        );
+    }
+
 }

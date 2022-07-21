@@ -74,12 +74,16 @@ public abstract class AbstractWallBlock extends BlockWithEntity {
                             TunnelDirection.NONE,
                             type,
                             false,
+                            false,
+                            false,
                             false
                     );
                     roomManager.addTunnel(room.getNumber(), tunnel);
                     tunnelEntity.setParentID(wall.getParentID());
                     tunnelEntity.setTunnelType(type);
-                    tunnelEntity.setConnected(false);
+                    tunnelEntity.setConnectedToItem(false);
+                    tunnelEntity.setConnectedToFluid(false);
+                    tunnelEntity.setConnectedToEnergy(false);
                     world.setBlockState(pos, world.getBlockState(pos),
                             Block.NOTIFY_ALL | Block.FORCE_STATE);
                     if (world.getBlockState(pos).getBlock() instanceof TunnelWallBlock block) {

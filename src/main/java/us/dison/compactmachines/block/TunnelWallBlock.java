@@ -173,7 +173,7 @@ public class TunnelWallBlock extends AbstractWallBlock {
                             TunnelDirection nextSide = TunnelUtil.nextSide(room, state.get(CONNECTED_SIDE));
                             CompactMachines.LOGGER.info(nextSide.toString());
                             world.setBlockState(pos, state.with(CONNECTED_SIDE, nextSide));
-                            Tunnel newTunnel = new Tunnel(oldTunnel.getPos(), nextSide, oldTunnel.getType(), oldTunnel.isConnected(), oldTunnel.isOutgoing())  ;
+                            Tunnel newTunnel = oldTunnel.withFace(nextSide);
                             block.setTunnel(newTunnel);
                             roomManager.updateTunnel(room.getNumber(), newTunnel);
                             player.sendMessage(

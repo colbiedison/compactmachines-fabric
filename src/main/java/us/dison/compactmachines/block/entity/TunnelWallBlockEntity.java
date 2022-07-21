@@ -24,6 +24,8 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
+import team.reborn.energy.api.EnergyStorage;
+import team.reborn.energy.api.base.SimpleEnergyStorage;
 
 import java.util.Optional;
 
@@ -42,7 +44,9 @@ import us.dison.compactmachines.util.TunnelUtil;
 public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements RenderAttachmentBlockEntity {
 
     private String strType = "";
-    private boolean isConnected = false;
+    private boolean connectedToItem = false;
+    private boolean connectedToEnergy = false; 
+    private boolean connectedToFluid = false;
     private boolean outgoing = false; 
     public TunnelWallBlockEntity(BlockPos pos, BlockState state) {
         super(CompactMachines.TUNNEL_WALL_BLOCK_ENTITY, pos, state);
@@ -58,13 +62,17 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
         super.readNbt(tag);
 
         this.strType = tag.getString("type");
-        this.isConnected = tag.getBoolean("isConnected");
+        this.connectedToItem = tag.getBoolean("connectedToItem");
+        this.connectedToEnergy = tag.getBoolean("connectedToEnergy");
+        this.connectedToFluid = tag.getBoolean("connectedToFluid");
         this.outgoing = tag.getBoolean("outgoing");
     }
 
     @Override
     protected void writeNbt(NbtCompound tag) {
-        tag.putBoolean("isConnected", this.isConnected);
+        tag.putBoolean("connectedToItem", this.connectedToItem);
+        tag.putBoolean("connectedToEnergy", this.connectedToEnergy);
+        tag.putBoolean("connectedToFluid", this.connectedToFluid);
         tag.putString("type", this.strType);
         tag.putBoolean("outgoing", this.outgoing);
         super.writeNbt(tag);
@@ -96,23 +104,35 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
     }
 
     public boolean isConnected() {
-        return isConnected;
+        return connectedToItem || connectedToFluid || connectedToEnergy;
     }
 
-    public void setConnected(boolean connected) {
-        isConnected = connected;
+    public void setConnectedToFluid(boolean connected) {
+        connectedToFluid = connected;
         Tunnel tunnel = getTunnel();
         final Room room = getRoom();
         if (room == null) return;
-        CompactMachines.getRoomManager().updateTunnel(room.getNumber(), new Tunnel(
-                tunnel.getPos(),
-                tunnel.getFace(),
-                tunnel.getType(),
-                connected,
-                tunnel.isOutgoing()
-        ));
+        CompactMachines.getRoomManager().updateTunnel(room.getNumber(), tunnel.withConnectedToFluid(connected));
         markDirty();
     }
+    public void setConnectedToItem(boolean connected) {
+        connectedToItem = connected;
+        Tunnel tunnel = getTunnel();
+        final Room room = getRoom();
+        if (room == null) return;
+        CompactMachines.getRoomManager().updateTunnel(room.getNumber(), tunnel.withConnectedToItem(connected));
+        markDirty();
+    }
+
+    public void setConnectedToEnergy(boolean connected) {
+        connectedToEnergy = connected;
+        Tunnel tunnel = getTunnel();
+        final Room room = getRoom();
+        if (room == null) return;
+        CompactMachines.getRoomManager().updateTunnel(room.getNumber(), tunnel.withConnectedToEnergy(connected));
+        markDirty();
+    }
+
     public boolean isOutgoing() {
         return outgoing;
     }
@@ -121,13 +141,7 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
         Tunnel tunnel = getTunnel();
         final Room room = getRoom();
         if (room == null) return;
-        CompactMachines.getRoomManager().updateTunnel(room.getNumber(), new Tunnel(
-                    tunnel.getPos(),
-                    tunnel.getFace(),
-                    tunnel.getType(),
-                    tunnel.isConnected(),
-                    outgoing
-        ));
+        CompactMachines.getRoomManager().updateTunnel(room.getNumber(), tunnel.withOutgoing(outgoing));
         markDirty();
         this.world.updateListeners(this.getPos(), this.getCachedState(), this.getCachedState(), Block.NOTIFY_ALL);
     }
@@ -141,7 +155,8 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
     @Nullable
     public Storage<ItemVariant> getExtTransferTarget() {
         if (this.getTunnelType() != TunnelType.ITEM) return null;
-        Room room = getRoom();
+        final Room room = getRoom();
+        if (room == null) return null;
         BlockPos machinePos = room.getMachinePos();
         try {
             ServerWorld machineWorld = getWorld().getServer().getWorld(RegistryKey.of(Registry.WORLD_KEY, room.getWorld()));
@@ -171,6 +186,7 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
     public Optional<Storage<FluidVariant>> getExtFluidTarget() {
         if (this.getTunnelType() != TunnelType.ITEM) return Optional.empty();
         Room room = getRoom();
+        if (room == null) return null;
         BlockPos machinePos = room.getMachinePos();
         try {
             ServerWorld machineWorld = getWorld().getServer().getWorld(RegistryKey.of(Registry.WORLD_KEY, room.getWorld()));
@@ -182,6 +198,7 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
         } catch (Exception ignored) {}
         return Optional.of(new NullFluidInventory());    
     }
+    @NotNull
     public Optional<Storage<FluidVariant>> getInternalFluidTarget() {
         if (this.getTunnelType() != TunnelType.ITEM) return Optional.empty();
         try {
@@ -194,6 +211,35 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
             }
         } catch (Exception ignored) {}
         return Optional.empty();
+    }
+    @NotNull
+    public Optional<EnergyStorage> getExtEnergyTarget() {
+        if (this.getTunnelType() != TunnelType.ITEM) return Optional.empty(); 
+        Room room = getRoom();
+        BlockPos machinePos = room.getMachinePos();
+        try {
+            ServerWorld machineWorld = getWorld().getServer().getWorld(RegistryKey.of(Registry.WORLD_KEY, room.getWorld()));
+            Tunnel tunnel = getTunnel();
+            if (tunnel.getFace() == TunnelDirection.NONE) return Optional.empty();
+            BlockPos targetPos = machinePos.offset(tunnel.getFace().toDirection(), 1);
+            machineWorld.getChunkManager().addTicket(ChunkTicketType.PORTAL, new ChunkPos(targetPos), 3, targetPos);
+            return Optional.ofNullable(EnergyStorage.SIDED.find(world, targetPos, tunnel.getFace().toDirection()));
+        } catch (Exception ignored) {}
+        return Optional.of(new SimpleEnergyStorage(0l, 0l, 0l));
+    }
+    public Optional<EnergyStorage> getInternalEnergyTarget() {
+        if (this.getTunnelType() != TunnelType.ITEM) return Optional.empty();
+        try {
+            for (Direction dir : Direction.values()) {
+                final BlockPos newPos = pos.offset(dir, 1);
+                BlockEntity be = world.getBlockEntity(newPos);
+                if (be instanceof TunnelWallBlockEntity) continue; 
+                final EnergyStorage storage = EnergyStorage.SIDED.find(world, newPos, dir); 
+                if (storage != null) return Optional.of(storage);
+            }
+        } catch (Exception ignored) {}
+        return Optional.empty();
+
     }
     /*
     @Override
@@ -290,7 +336,7 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
     public class NullInventory extends SingleVariantStorage<ItemVariant> {
         @Override 
         protected long getCapacity(ItemVariant variant) {
-            return 1l;
+            return 0l;
         }
         @Override 
         protected ItemVariant getBlankVariant() {
@@ -300,7 +346,7 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
     public class NullFluidInventory extends SingleVariantStorage<FluidVariant> {
         @Override 
         protected long getCapacity(FluidVariant variant) {
-            return 1l;
+            return 0l;
         }
         @Override 
         protected FluidVariant getBlankVariant() {

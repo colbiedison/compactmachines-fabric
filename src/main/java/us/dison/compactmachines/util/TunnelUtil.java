@@ -52,22 +52,7 @@ public class TunnelUtil {
     }
 
     public static Tunnel rotate(Room room, Tunnel t) {
-        return new Tunnel(
-                t.getPos(),
-                nextSide(room, t.getFace()),
-                t.getType(),
-                t.isConnected(),
-                t.isOutgoing()
-        );
-    }
-    public static Tunnel withFace(Tunnel t, TunnelDirection face) {
-        return new Tunnel(
-                t.getPos(),
-                face,
-                t.getType(),
-                t.isConnected(),
-                t.isOutgoing()
-        );
+        return t.withFace(nextSide(room, t.getFace()));
     }
     public static Tunnel fromRoomAndPos(Room room, BlockPos pos) {
         if (room == null) return null;

@@ -7,8 +7,7 @@ import java.util.Objects;
 
 public enum TunnelType implements StringIdentifiable {
     ITEM    ("Item",        0, 0x555555),
-    REDSTONE("Redstone",    1, 0xaa1111),
-    ENERGY  ("Energy",      2, 0xee3333);
+    REDSTONE("Redstone",    1, 0xaa1111);
 
     public static final Codec<TunnelType> CODEC = StringIdentifiable.createCodec(TunnelType::values, TunnelType::byName);
 
