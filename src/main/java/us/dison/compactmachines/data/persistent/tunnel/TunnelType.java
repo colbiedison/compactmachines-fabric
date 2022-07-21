@@ -6,7 +6,7 @@ import net.minecraft.util.StringIdentifiable;
 import java.util.Objects;
 
 public enum TunnelType implements StringIdentifiable {
-    ITEM    ("Item",        0, 0x555555),
+    ITEM    ("Item",        0, 0xf5aa42),
     REDSTONE("Redstone",    1, 0xaa1111);
 
     public static final Codec<TunnelType> CODEC = StringIdentifiable.createCodec(TunnelType::values, TunnelType::byName);
