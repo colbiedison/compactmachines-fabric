@@ -2,10 +2,9 @@
 	"credit": "Made with Blockbench",
 	"parent": "minecraft:block/block",
 	"textures": {
-		"3": "compactmachines:block/tunnels/indicator_tile_outgoing",
+		"indicatortile": "compactmachines:block/tunnels/indicator_tile_neither",
 		"tunnel": "compactmachines:block/tunnels/tunnel",
-		"indicator": "compactmachines:block/tunnels/indicatorfull",
-		"particle": "compactmachines:block/tunnels/indicator_tile_outgoing"
+		"indicator": "compactmachines:block/tunnels/indicatorfull"
 	},
 	"elements": [
 		{
@@ -48,12 +47,12 @@
 			"from": [0, 0, 0],
 			"to": [16, 16, 16],
 			"faces": {
-				"north": {"uv": [0, 0, 16, 16], "texture": "#3"},
-				"east": {"uv": [0, 0, 16, 16], "texture": "#3"},
-				"south": {"uv": [0, 0, 16, 16], "texture": "#3"},
-				"west": {"uv": [0, 0, 16, 16], "texture": "#3"},
-				"up": {"uv": [0, 0, 16, 16], "texture": "#3"},
-				"down": {"uv": [0, 0, 16, 16], "texture": "#3"}
+				"north": {"uv": [0, 0, 16, 16], "texture": "#indicatortile"},
+				"east": {"uv": [0, 0, 16, 16], "texture": "#indicatortile"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#indicatortile"},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#indicatortile"},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#indicatortile"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#indicatortile"}
 			}
 		}
 	]

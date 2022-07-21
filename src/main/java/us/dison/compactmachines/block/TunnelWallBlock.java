@@ -47,6 +47,7 @@ public class TunnelWallBlock extends AbstractWallBlock {
     @Override 
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block block, BlockPos fromPos, boolean notify) {
         if (block.equals(this)) return;
+
         if (notify) update(state, world, pos);
     }
     protected void update(BlockState state, World world, BlockPos pos) {

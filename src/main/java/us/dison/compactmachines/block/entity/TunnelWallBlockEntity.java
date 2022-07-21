@@ -7,8 +7,6 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
-//import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
-//import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -25,12 +23,9 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import team.reborn.energy.api.EnergyStorage;
-import team.reborn.energy.api.base.SimpleEnergyStorage;
 
 import java.util.Optional;
 
-//import java.util.Iterator;
-//import java.util.NoSuchElementException;
 
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
@@ -164,9 +159,18 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
             if (tunnel.getFace() == TunnelDirection.NONE) return null;
             BlockPos targetPos = machinePos.offset(tunnel.getFace().toDirection(), 1);
             machineWorld.getChunkManager().addTicket(ChunkTicketType.PORTAL, new ChunkPos(targetPos), 3, targetPos);
-            return ItemStorage.SIDED.find(world, targetPos, tunnel.getFace().toDirection());
-        } catch (Exception ignored) {}
-        return new NullInventory();
+            for (Direction dir : Direction.values()) {
+                final Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, targetPos, dir);
+                if (storage != null) {
+                    CompactMachines.LOGGER.info(dir.toString() + " has a valid storage");
+                }
+            }
+            return ItemStorage.SIDED.find(machineWorld, targetPos, tunnel.getFace().toDirection());
+        } catch (Exception ignored) {
+            CompactMachines.LOGGER.error("Supressed exception while trying to get external item target");
+            CompactMachines.LOGGER.error(ignored);
+        }
+        return null;
     }
     @Nullable
     public Storage<ItemVariant> getInternalTransferTarget() {
@@ -179,7 +183,10 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
                 final Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, newPos, dir);
                 if (storage != null) return storage;
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            CompactMachines.LOGGER.error("Supressed exception while trying to get internal item target");
+            CompactMachines.LOGGER.error(ignored);
+        }
         return null;
     }
     @NotNull
@@ -194,9 +201,12 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
             if (tunnel.getFace() == TunnelDirection.NONE) return Optional.empty();
             BlockPos targetPos = machinePos.offset(tunnel.getFace().toDirection(), 1);
             machineWorld.getChunkManager().addTicket(ChunkTicketType.PORTAL, new ChunkPos(targetPos), 3, targetPos);
-            return Optional.ofNullable(FluidStorage.SIDED.find(world, targetPos, tunnel.getFace().toDirection()));
-        } catch (Exception ignored) {}
-        return Optional.of(new NullFluidInventory());    
+            return Optional.ofNullable(FluidStorage.SIDED.find(machineWorld, targetPos, tunnel.getFace().toDirection()));
+        } catch (Exception ignored) {
+            CompactMachines.LOGGER.error("Supressed exception while trying to get external fluid target");
+            CompactMachines.LOGGER.error(ignored);
+        }
+        return Optional.empty();    
     }
     @NotNull
     public Optional<Storage<FluidVariant>> getInternalFluidTarget() {
@@ -209,7 +219,10 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
                 final Storage<FluidVariant> storage = FluidStorage.SIDED.find(world, newPos, dir); 
                 if (storage != null) return Optional.of(storage);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            CompactMachines.LOGGER.error("Supressed exception while trying to get internal fluid target");
+            CompactMachines.LOGGER.error(ignored);
+        }
         return Optional.empty();
     }
     @NotNull
@@ -223,10 +236,14 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
             if (tunnel.getFace() == TunnelDirection.NONE) return Optional.empty();
             BlockPos targetPos = machinePos.offset(tunnel.getFace().toDirection(), 1);
             machineWorld.getChunkManager().addTicket(ChunkTicketType.PORTAL, new ChunkPos(targetPos), 3, targetPos);
-            return Optional.ofNullable(EnergyStorage.SIDED.find(world, targetPos, tunnel.getFace().toDirection()));
-        } catch (Exception ignored) {}
-        return Optional.of(new SimpleEnergyStorage(0l, 0l, 0l));
+            return Optional.ofNullable(EnergyStorage.SIDED.find(machineWorld, targetPos, tunnel.getFace().toDirection()));
+        } catch (Exception ignored) {
+            CompactMachines.LOGGER.error("Supressed exception while trying to get external energy target");
+            CompactMachines.LOGGER.error(ignored);
+        }
+        return Optional.empty();
     }
+    @NotNull
     public Optional<EnergyStorage> getInternalEnergyTarget() {
         if (this.getTunnelType() != TunnelType.ITEM) return Optional.empty();
         try {
@@ -237,7 +254,10 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
                 final EnergyStorage storage = EnergyStorage.SIDED.find(world, newPos, dir); 
                 if (storage != null) return Optional.of(storage);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            CompactMachines.LOGGER.error("Supressed exception while trying to get internal energy target");
+            CompactMachines.LOGGER.error(ignored);
+        }
         return Optional.empty();
 
     }
