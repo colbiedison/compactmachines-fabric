@@ -8,11 +8,13 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
@@ -20,6 +22,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
@@ -44,6 +47,7 @@ import us.dison.compactmachines.item.PSDItem;
 import us.dison.compactmachines.item.TunnelItem;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class CompactMachines implements ModInitializer {
 
@@ -180,15 +184,17 @@ public class CompactMachines implements ModInitializer {
         // REGISTER Fabric Transfer API blocks
         ItemStorage.SIDED.registerForBlockEntity(
                 (machineEntity, direction) -> {
-                    ArrayList<InventoryStorage> targets = new ArrayList<>();
+                    ArrayList<Storage<ItemVariant>> targets = new ArrayList<>();
                     for (Tunnel tunnel : roomManager.getRoomByNumber(machineEntity.getMachineID()).getTunnels()) {
                         if (cmWorld.getBlockEntity(tunnel.getPos()) instanceof TunnelWallBlockEntity tunnelEntity) {
                             tunnelEntity.setConnected(false);
                             if (tunnel.getFace().toDirection() == null) continue;
                             if (!tunnel.getFace().toDirection().equals(direction)) continue;
-                            if (tunnelEntity.getInternalTransferTarget() instanceof Inventory inv) {
+                            final Storage<ItemVariant> internalTarget = tunnelEntity.getInternalTransferTarget();
+                            if (internalTarget != null) {
+                                LOGGER.info(internalTarget.toString());
                                 tunnelEntity.setConnected(true);
-                                targets.add(InventoryStorage.of(inv, null));
+                                targets.add(internalTarget);
                             }
                         }
                     }
@@ -198,7 +204,39 @@ public class CompactMachines implements ModInitializer {
                 },
                 MACHINE_BLOCK_ENTITY
         );
+        ItemStorage.SIDED.registerForBlockEntity(
+                (TunnelWallBlockEntity wallEntity, Direction direction) -> {
+                    return wallEntity.getExtTransferTarget();
+                },
+                TUNNEL_WALL_BLOCK_ENTITY);
+        FluidStorage.SIDED.registerForBlockEntity(
+                    (machineEntity, direction) -> {
+                    ArrayList<Storage<FluidVariant>> targets = new ArrayList<>();
+                    for (Tunnel tunnel : roomManager.getRoomByNumber(machineEntity.getMachineID()).getTunnels()) {
+                        if (cmWorld.getBlockEntity(tunnel.getPos()) instanceof TunnelWallBlockEntity tunnelEntity) {
+                            tunnelEntity.setConnected(false);
+                            if (tunnel.getFace().toDirection() == null) continue;
+                            if (!tunnel.getFace().toDirection().equals(direction)) continue;
+                            final Optional<Storage<FluidVariant>> internalTarget = tunnelEntity.getInternalFluidTarget();
+                            internalTarget.ifPresent(val -> {
+                                tunnelEntity.setConnected(true);
+                                targets.add(val);
+                            });
+                        }
+                    }
 
+                    if (targets.size() < 1) return null;
+                    return targets.get( (int) (Math.random() * targets.size()) );
+
+                            
+                    }
+                , MACHINE_BLOCK_ENTITY);
+        FluidStorage.SIDED.registerForBlockEntity(
+                (wallEntity, direction) -> {
+                    // the devil corrupts everything he touches
+                    return wallEntity.getExtFluidTarget().orElse(null);
+                },
+                TUNNEL_WALL_BLOCK_ENTITY);
         // REGISTER Block
         Registry.register(Registry.BLOCK, ID_TINY, BLOCK_MACHINE_TINY);
         Registry.register(Registry.BLOCK, ID_SMALL, BLOCK_MACHINE_SMALL);

@@ -46,7 +46,8 @@ public class TunnelWallBlock extends AbstractWallBlock {
 
     @Override 
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block block, BlockPos fromPos, boolean notify) {
-        update(state, world, pos);
+        if (block.equals(this)) return;
+        if (notify) update(state, world, pos);
     }
     protected void update(BlockState state, World world, BlockPos pos) {
         if (!(world.getBlockEntity(pos) instanceof TunnelWallBlockEntity wall)) return; 
@@ -60,7 +61,7 @@ public class TunnelWallBlock extends AbstractWallBlock {
             CompactMachines.LOGGER.warn("Machine has no world");
             return;
         }
-        world.updateNeighborsAlways(pos, this);
+        world.updateNeighbors(pos, this);
         // don't ask
         machineWorld.updateNeighborsAlways(machineBlockEntity.getPos(), machineWorld.getBlockState(machineBlockEntity.getPos()).getBlock());
 
@@ -169,10 +170,10 @@ public class TunnelWallBlock extends AbstractWallBlock {
                         if (state.getBlock() instanceof TunnelWallBlock block && hand == Hand.MAIN_HAND) {
                             if (!(world.getBlockEntity(pos) instanceof TunnelWallBlockEntity tunnelEntity)) return ActionResult.FAIL;
                             Tunnel oldTunnel = tunnelEntity.getTunnel();
-                            TunnelDirection nextSide = TunnelUtil.nextSide(state.get(CONNECTED_SIDE));
+                            TunnelDirection nextSide = TunnelUtil.nextSide(room, state.get(CONNECTED_SIDE));
                             CompactMachines.LOGGER.info(nextSide.toString());
                             world.setBlockState(pos, state.with(CONNECTED_SIDE, nextSide));
-                            Tunnel newTunnel = TunnelUtil.rotate(oldTunnel);
+                            Tunnel newTunnel = new Tunnel(oldTunnel.getPos(), nextSide, oldTunnel.getType(), oldTunnel.isConnected(), oldTunnel.isOutgoing())  ;
                             block.setTunnel(newTunnel);
                             roomManager.updateTunnel(room.getNumber(), newTunnel);
                             player.sendMessage(
