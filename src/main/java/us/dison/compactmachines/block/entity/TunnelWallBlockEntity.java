@@ -159,12 +159,6 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
             if (tunnel.getFace() == TunnelDirection.NONE) return null;
             BlockPos targetPos = machinePos.offset(tunnel.getFace().toDirection(), 1);
             machineWorld.getChunkManager().addTicket(ChunkTicketType.PORTAL, new ChunkPos(targetPos), 3, targetPos);
-            for (Direction dir : Direction.values()) {
-                final Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, targetPos, dir);
-                if (storage != null) {
-                    CompactMachines.LOGGER.info(dir.toString() + " has a valid storage");
-                }
-            }
             return ItemStorage.SIDED.find(machineWorld, targetPos, tunnel.getFace().toDirection());
         } catch (Exception ignored) {
             CompactMachines.LOGGER.error("Supressed exception while trying to get external item target");
