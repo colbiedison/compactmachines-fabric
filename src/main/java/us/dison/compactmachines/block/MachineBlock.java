@@ -55,12 +55,13 @@ public class MachineBlock extends BlockWithEntity {
             if (!(player instanceof ServerPlayerEntity serverPlayer)) return ActionResult.PASS;
 
             if (serverPlayer.getStackInHand(hand).getItem() instanceof PSDItem) {
+                /*
                 // this code is to work around exiting, which is busted
                 if (world == CompactMachines.cmWorld) {
                     serverPlayer.sendMessage(new TranslatableText("message.compactmachines.cannot_enter"), false);
                     return ActionResult.PASS;
                 }
-                
+                */
                 RoomManager roomManager = CompactMachines.getRoomManager();
 
                 if (blockEntity.getMachineID() == -1) { // make new room
