@@ -99,13 +99,14 @@ public class CompactMachinesClient implements ClientModInitializer {
             TunnelWallBlockEntity.RenderAttachmentData data = (TunnelWallBlockEntity.RenderAttachmentData) ra;
             TunnelType type = data.getType();
             if (type == null && world.getBlockState(pos).getBlock() instanceof TunnelWallBlock tunnelBlock) {
+                if (tunnelBlock.getTunnel() == null) return 0xff00ff;
                 type = tunnelBlock.getTunnel().getType();
             }
             boolean isConnected = data.isConnected();
 
             return switch (tintIndex) {
                 case 0 -> type == null ? 0xff00ff : type.getColor();
-                case 1 -> isConnected ? 0xaaaabb : 0x222233;
+                case 1 -> type == TunnelType.REDSTONE ? (tunnelWall.isOutgoing() ? 0xeb3434 : 0x34eb6e) : (isConnected ? 0xaaaabb : 0x222233);
                 default -> 0xff00ff;
             };
         }, BLOCK_WALL_TUNNEL);

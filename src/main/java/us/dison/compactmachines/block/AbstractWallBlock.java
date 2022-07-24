@@ -23,6 +23,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import us.dison.compactmachines.CompactMachines;
+import us.dison.compactmachines.block.entity.MachineBlockEntity;
 import us.dison.compactmachines.block.entity.MachineWallBlockEntity;
 import us.dison.compactmachines.block.entity.TunnelWallBlockEntity;
 import us.dison.compactmachines.block.enums.TunnelDirection;
@@ -35,6 +36,7 @@ import us.dison.compactmachines.item.TunnelItem;
 import us.dison.compactmachines.util.TunnelUtil;
 
 import java.util.List;
+import java.util.Optional;
 
 public abstract class AbstractWallBlock extends BlockWithEntity {
 
@@ -73,12 +75,17 @@ public abstract class AbstractWallBlock extends BlockWithEntity {
                             wall.getPos(),
                             TunnelDirection.NONE,
                             type,
+                            false,
+                            false,
+                            false,
                             false
                     );
                     roomManager.addTunnel(room.getNumber(), tunnel);
                     tunnelEntity.setParentID(wall.getParentID());
                     tunnelEntity.setTunnelType(type);
-                    tunnelEntity.setConnected(false);
+                    tunnelEntity.setConnectedToItem(false);
+                    tunnelEntity.setConnectedToFluid(false);
+                    tunnelEntity.setConnectedToEnergy(false);
                     world.setBlockState(pos, world.getBlockState(pos),
                             Block.NOTIFY_ALL | Block.FORCE_STATE);
                     if (world.getBlockState(pos).getBlock() instanceof TunnelWallBlock block) {
@@ -96,10 +103,23 @@ public abstract class AbstractWallBlock extends BlockWithEntity {
         ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
         ServerWorld machineWorld = world.getServer().getWorld(RegistryKey.of(Registry.WORLD_KEY, room.getWorld()));
         BlockPos machinePos = room.getMachinePos();
+        Optional<Integer> parentID = Optional.empty();
+        if (machineWorld.getBlockEntity(machinePos) instanceof MachineBlockEntity machineEntity) {
+            parentID = machineEntity.getParentID();
+        }
 
         if (player.getStackInHand(hand).getItem() instanceof PSDItem) {
             CompactMachines.LOGGER.info("Teleporting player "+player.getDisplayName().asString()+" out of machine #"+room.getNumber()+" at: "+room.getCenter().toShortString());
-            serverPlayer.teleport(machineWorld, machinePos.getX(), machinePos.getY(), machinePos.getZ(), 0, 0);
+            parentID.ifPresentOrElse(id -> {
+                final Room  parentRoom = CompactMachines.getRoomManager().getRoomByNumber(id);
+                if (parentRoom != null) {
+                    final BlockPos spawnPos = parentRoom.getSpawnPos();
+                    serverPlayer.teleport(machineWorld, spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), 0, 0);
+                } else {
+                    serverPlayer.teleport(machineWorld, machinePos.getX(), machinePos.getY(), machinePos.getZ(), 0, 0);
+                }
+                }, 
+                () -> serverPlayer.teleport(machineWorld, machinePos.getX(), machinePos.getY(), machinePos.getZ(), 0, 0));
             roomManager.rmPlayer(room.getNumber(), serverPlayer.getUuidAsString());
 
             return ActionResult.SUCCESS;

@@ -1,5 +1,7 @@
 package us.dison.compactmachines.util;
 
+import java.util.ArrayList;
+
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.util.math.BlockPos;
@@ -20,31 +22,38 @@ public class TunnelUtil {
         return null;
     }
 
-    public static TunnelDirection nextSide(TunnelDirection cur) {
-        int i = -1;
-        for (TunnelDirection direction : TunnelDirection.values()) {
-            i++;
+    public static TunnelDirection nextSide(Room room, TunnelDirection cur) {
+        int i = 0;
+        int attempts = 0;
+        ArrayList<TunnelDirection> tunnelDirections = new ArrayList<>();
+        for (Tunnel tunnel : room.getTunnels()) {
+            final TunnelDirection dir = tunnel.getFace();
+            if (dir != TunnelDirection.NONE) tunnelDirections.add(dir); 
+        }
+        boolean exitOnNextGood = false;
+        final TunnelDirection[] dirs = TunnelDirection.values();
+        while (attempts <= 12) {
+            final TunnelDirection direction = dirs[i];
+            if (exitOnNextGood && !tunnelDirections.contains(direction)) {
+                break; 
+            } 
             if (direction.name().equals(cur.name())) {
-                if (i >= TunnelDirection.values().length-1) {
-                    i = 0;
-                } else {
-                    i++;
-                }
-                break;
+                exitOnNextGood = true; 
+
             }
+            i++;
+            if (i >= dirs.length) {
+                i = 0; 
+            }
+            attempts++;
+
         }
         return TunnelDirection.values()[i];
     }
 
-    public static Tunnel rotate(Tunnel t) {
-        return new Tunnel(
-                t.getPos(),
-                nextSide(t.getFace()),
-                t.getType(),
-                t.isConnected()
-        );
+    public static Tunnel rotate(Room room, Tunnel t) {
+        return t.withFace(nextSide(room, t.getFace()));
     }
-
     public static Tunnel fromRoomAndPos(Room room, BlockPos pos) {
         if (room == null) return null;
         for (Tunnel tunnel : room.getTunnels()) {

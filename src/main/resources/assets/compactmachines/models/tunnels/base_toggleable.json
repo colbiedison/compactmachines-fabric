@@ -1,0 +1,59 @@
+{
+	"credit": "Made with Blockbench",
+	"parent": "minecraft:block/block",
+	"textures": {
+		"indicatortile": "compactmachines:block/tunnels/indicator_tile_neither",
+		"tunnel": "compactmachines:block/tunnels/tunnel",
+		"indicator": "compactmachines:block/tunnels/indicatorfull"
+	},
+	"elements": [
+		{
+			"from": [0, 0, 0],
+			"to": [16, 16, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#wall", "cullface": "north"},
+				"east": {"uv": [0, 0, 16, 16], "texture": "#wall", "cullface": "east"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#wall", "cullface": "south"},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#wall", "cullface": "west"},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#wall", "cullface": "up"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#wall", "cullface": "down"}
+			}
+		},
+		{
+			"from": [0, 0, 0],
+			"to": [16, 16, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#tunnel", "cullface": "north", "tintindex": 0},
+				"east": {"uv": [0, 0, 16, 16], "texture": "#tunnel", "cullface": "east", "tintindex": 0},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#tunnel", "cullface": "south", "tintindex": 0},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#tunnel", "cullface": "west", "tintindex": 0},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#tunnel", "cullface": "up", "tintindex": 0},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#tunnel", "cullface": "down", "tintindex": 0}
+			}
+		},
+		{
+			"from": [0, 0, 0],
+			"to": [16, 16, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#indicator", "cullface": "north", "tintindex": 1},
+				"east": {"uv": [0, 0, 16, 16], "texture": "#indicator", "cullface": "east", "tintindex": 1},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#indicator", "cullface": "south", "tintindex": 1},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#indicator", "cullface": "west", "tintindex": 1},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#indicator", "cullface": "up", "tintindex": 1},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#indicator", "cullface": "down", "tintindex": 1}
+			}
+		},
+		{
+			"from": [0, 0, 0],
+			"to": [16, 16, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#indicatortile"},
+				"east": {"uv": [0, 0, 16, 16], "texture": "#indicatortile"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#indicatortile"},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#indicatortile"},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#indicatortile"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#indicatortile"}
+			}
+		}
+	]
+}

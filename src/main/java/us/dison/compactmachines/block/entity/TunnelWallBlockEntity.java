@@ -1,37 +1,48 @@
 package us.dison.compactmachines.block.entity;
 
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.Packet;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
+import team.reborn.energy.api.EnergyStorage;
+
+import java.util.Optional;
+
+
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.block.enums.TunnelDirection;
 import us.dison.compactmachines.data.persistent.Room;
 import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
 import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
-import us.dison.compactmachines.tunnel.IInventory;
 import us.dison.compactmachines.util.TunnelUtil;
 
-public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements RenderAttachmentBlockEntity, IInventory {
+public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements RenderAttachmentBlockEntity {
 
     private String strType = "";
-    private boolean isConnected = false;
-
+    private boolean connectedToItem = false;
+    private boolean connectedToEnergy = false; 
+    private boolean connectedToFluid = false;
+    private boolean outgoing = false; 
     public TunnelWallBlockEntity(BlockPos pos, BlockState state) {
         super(CompactMachines.TUNNEL_WALL_BLOCK_ENTITY, pos, state);
     }
@@ -46,20 +57,25 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
         super.readNbt(tag);
 
         this.strType = tag.getString("type");
-        this.isConnected = tag.getBoolean("isConnected");
+        this.connectedToItem = tag.getBoolean("connectedToItem");
+        this.connectedToEnergy = tag.getBoolean("connectedToEnergy");
+        this.connectedToFluid = tag.getBoolean("connectedToFluid");
+        this.outgoing = tag.getBoolean("outgoing");
     }
 
     @Override
     protected void writeNbt(NbtCompound tag) {
-        tag.putBoolean("isConnected", this.isConnected);
+        tag.putBoolean("connectedToItem", this.connectedToItem);
+        tag.putBoolean("connectedToEnergy", this.connectedToEnergy);
+        tag.putBoolean("connectedToFluid", this.connectedToFluid);
         tag.putString("type", this.strType);
-
+        tag.putBoolean("outgoing", this.outgoing);
         super.writeNbt(tag);
     }
 
     @Override
     public Object getRenderAttachmentData() {
-        return new RenderAttachmentData(getTunnelType(), isConnected());
+        return new RenderAttachmentData(getTunnelType(), isConnected(), isOutgoing());
     }
 
     @Nullable
@@ -83,21 +99,47 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
     }
 
     public boolean isConnected() {
-        return isConnected;
+        return connectedToItem || connectedToFluid || connectedToEnergy;
     }
 
-    public void setConnected(boolean connected) {
-        isConnected = connected;
+    public void setConnectedToFluid(boolean connected) {
+        connectedToFluid = connected;
         Tunnel tunnel = getTunnel();
-        CompactMachines.getRoomManager().updateTunnel(getRoom().getNumber(), new Tunnel(
-                tunnel.getPos(),
-                tunnel.getFace(),
-                tunnel.getType(),
-                connected
-        ));
+        final Room room = getRoom();
+        if (room == null) return;
+        CompactMachines.getRoomManager().updateTunnel(room.getNumber(), tunnel.withConnectedToFluid(connected));
+        markDirty();
+    }
+    public void setConnectedToItem(boolean connected) {
+        connectedToItem = connected;
+        Tunnel tunnel = getTunnel();
+        final Room room = getRoom();
+        if (room == null) return;
+        CompactMachines.getRoomManager().updateTunnel(room.getNumber(), tunnel.withConnectedToItem(connected));
         markDirty();
     }
 
+    public void setConnectedToEnergy(boolean connected) {
+        connectedToEnergy = connected;
+        Tunnel tunnel = getTunnel();
+        final Room room = getRoom();
+        if (room == null) return;
+        CompactMachines.getRoomManager().updateTunnel(room.getNumber(), tunnel.withConnectedToEnergy(connected));
+        markDirty();
+    }
+
+    public boolean isOutgoing() {
+        return outgoing;
+    }
+    public void setOutgoing(boolean outgoing) {
+        this.outgoing = outgoing;
+        Tunnel tunnel = getTunnel();
+        final Room room = getRoom();
+        if (room == null) return;
+        CompactMachines.getRoomManager().updateTunnel(room.getNumber(), tunnel.withOutgoing(outgoing));
+        markDirty();
+        this.world.updateListeners(this.getPos(), this.getCachedState(), this.getCachedState(), Block.NOTIFY_ALL);
+    }
     public void setStrType(String strType) {
         this.strType = strType;
     }
@@ -105,9 +147,11 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
     public Room getRoom() {
         return CompactMachines.getRoomManager().getRoomByNumber(getParentID());
     }
-
-    public BlockEntity getExtTransferTarget() {
-        Room room = getRoom();
+    @Nullable
+    public Storage<ItemVariant> getExtTransferTarget() {
+        if (this.getTunnelType() != TunnelType.ITEM) return null;
+        final Room room = getRoom();
+        if (room == null) return null;
         BlockPos machinePos = room.getMachinePos();
         try {
             ServerWorld machineWorld = getWorld().getServer().getWorld(RegistryKey.of(Registry.WORLD_KEY, room.getWorld()));
@@ -115,25 +159,181 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
             if (tunnel.getFace() == TunnelDirection.NONE) return null;
             BlockPos targetPos = machinePos.offset(tunnel.getFace().toDirection(), 1);
             machineWorld.getChunkManager().addTicket(ChunkTicketType.PORTAL, new ChunkPos(targetPos), 3, targetPos);
-            return machineWorld.getBlockEntity(targetPos);
-        } catch (Exception ignored) {}
+            return ItemStorage.SIDED.find(machineWorld, targetPos, tunnel.getFace().toDirection());
+        } catch (Exception ignored) {
+            CompactMachines.LOGGER.error("Supressed exception while trying to get external item target");
+            CompactMachines.LOGGER.error(ignored);
+        }
         return null;
     }
-
-    public BlockEntity getInternalTransferTarget() {
-        Room room = getRoom();
+    @Nullable
+    public Storage<ItemVariant> getInternalTransferTarget() {
+        if (this.getTunnelType() != TunnelType.ITEM) return null;
         try {
             for (Direction dir : Direction.values()) {
-                BlockEntity be = world.getBlockEntity(pos.offset(dir, 1));
-                if (    be instanceof Inventory &&
-                     ! (be instanceof TunnelWallBlockEntity) ) {
-                    return be;
-                }
+                final BlockPos newPos = pos.offset(dir, 1);
+                BlockEntity be = world.getBlockEntity(newPos);
+                if (be instanceof TunnelWallBlockEntity) continue;
+                final Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, newPos, dir);
+                if (storage != null) return storage;
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            CompactMachines.LOGGER.error("Supressed exception while trying to get internal item target");
+            CompactMachines.LOGGER.error(ignored);
+        }
         return null;
     }
+    @NotNull
+    public Optional<Storage<FluidVariant>> getExtFluidTarget() {
+        if (this.getTunnelType() != TunnelType.ITEM) return Optional.empty();
+        Room room = getRoom();
+        if (room == null) return null;
+        BlockPos machinePos = room.getMachinePos();
+        try {
+            ServerWorld machineWorld = getWorld().getServer().getWorld(RegistryKey.of(Registry.WORLD_KEY, room.getWorld()));
+            Tunnel tunnel = getTunnel();
+            if (tunnel.getFace() == TunnelDirection.NONE) return Optional.empty();
+            BlockPos targetPos = machinePos.offset(tunnel.getFace().toDirection(), 1);
+            machineWorld.getChunkManager().addTicket(ChunkTicketType.PORTAL, new ChunkPos(targetPos), 3, targetPos);
+            return Optional.ofNullable(FluidStorage.SIDED.find(machineWorld, targetPos, tunnel.getFace().toDirection()));
+        } catch (Exception ignored) {
+            CompactMachines.LOGGER.error("Supressed exception while trying to get external fluid target");
+            CompactMachines.LOGGER.error(ignored);
+        }
+        return Optional.empty();    
+    }
+    @NotNull
+    public Optional<Storage<FluidVariant>> getInternalFluidTarget() {
+        if (this.getTunnelType() != TunnelType.ITEM) return Optional.empty();
+        try {
+            for (Direction dir : Direction.values()) {
+                final BlockPos newPos = pos.offset(dir, 1);
+                BlockEntity be = world.getBlockEntity(newPos);
+                if (be instanceof TunnelWallBlockEntity) continue; 
+                final Storage<FluidVariant> storage = FluidStorage.SIDED.find(world, newPos, dir); 
+                if (storage != null) return Optional.of(storage);
+            }
+        } catch (Exception ignored) {
+            CompactMachines.LOGGER.error("Supressed exception while trying to get internal fluid target");
+            CompactMachines.LOGGER.error(ignored);
+        }
+        return Optional.empty();
+    }
+    @NotNull
+    public Optional<EnergyStorage> getExtEnergyTarget() {
+        if (this.getTunnelType() != TunnelType.ITEM) return Optional.empty(); 
+        Room room = getRoom();
+        BlockPos machinePos = room.getMachinePos();
+        try {
+            ServerWorld machineWorld = getWorld().getServer().getWorld(RegistryKey.of(Registry.WORLD_KEY, room.getWorld()));
+            Tunnel tunnel = getTunnel();
+            if (tunnel.getFace() == TunnelDirection.NONE) return Optional.empty();
+            BlockPos targetPos = machinePos.offset(tunnel.getFace().toDirection(), 1);
+            machineWorld.getChunkManager().addTicket(ChunkTicketType.PORTAL, new ChunkPos(targetPos), 3, targetPos);
+            return Optional.ofNullable(EnergyStorage.SIDED.find(machineWorld, targetPos, tunnel.getFace().toDirection()));
+        } catch (Exception ignored) {
+            CompactMachines.LOGGER.error("Supressed exception while trying to get external energy target");
+            CompactMachines.LOGGER.error(ignored);
+        }
+        return Optional.empty();
+    }
+    @NotNull
+    public Optional<EnergyStorage> getInternalEnergyTarget() {
+        if (this.getTunnelType() != TunnelType.ITEM) return Optional.empty();
+        try {
+            for (Direction dir : Direction.values()) {
+                final BlockPos newPos = pos.offset(dir, 1);
+                BlockEntity be = world.getBlockEntity(newPos);
+                if (be instanceof TunnelWallBlockEntity) continue; 
+                final EnergyStorage storage = EnergyStorage.SIDED.find(world, newPos, dir); 
+                if (storage != null) return Optional.of(storage);
+            }
+        } catch (Exception ignored) {
+            CompactMachines.LOGGER.error("Supressed exception while trying to get internal energy target");
+            CompactMachines.LOGGER.error(ignored);
+        }
+        return Optional.empty();
 
+    }
+    /*
+    @Override
+    public Iterator<? extends StorageView<ItemVariant>> iterator(TransactionContext context) {
+        final Storage<ItemVariant> storage = getExtTransferTarget();
+        if (storage == null) {
+            return new Iterator<StorageView<ItemVariant>>() {
+                public boolean hasNext() {
+                    return false; 
+                }
+                public StorageView<ItemVariant> next() {
+                    throw new NoSuchElementException();
+                }
+            };
+        }
+        return storage.iterator(context);
+    }
+    @Override
+    public Iterable<? extends StorageView<ItemVariant>> iterable(TransactionContext context) {
+        final Storage<ItemVariant> storage = getExtTransferTarget();
+        if (storage == null) {
+            return new Iterable<StorageView<ItemVariant>>() {
+                public Iterator<StorageView<ItemVariant>> iterator() {
+                    return new Iterator<StorageView<ItemVariant>>() {
+                        public boolean hasNext() {
+                            return false; 
+                        }
+                        public StorageView<ItemVariant> next() {
+                            throw new NoSuchElementException();
+                        }
+                    };
+                }
+            };
+        }
+        return storage.iterable(context);
+    }
+    @Override 
+    public boolean supportsInsertion() {
+        final Storage<ItemVariant> storage = getExtTransferTarget();
+        return storage == null ? false : storage.supportsInsertion();
+    }
+    @Override 
+    public boolean supportsExtraction() {
+        final Storage<ItemVariant> storage = getExtTransferTarget();
+        return storage == null ? false : storage.supportsExtraction();
+    }
+    @Override 
+    @Nullable
+    public StorageView<ItemVariant> exactView(TransactionContext context, ItemVariant resource) {
+        final Storage<ItemVariant> storage = getExtTransferTarget();
+        return storage == null ? null : storage.exactView(context, resource);
+    }
+    @Override 
+    public long extract(ItemVariant resource, long maxAmount, TransactionContext context) {
+        final Storage<ItemVariant> storage = getExtTransferTarget();
+        return storage == null ? 0l : storage.extract(resource, maxAmount, context);
+    }
+    @Override 
+    public long getVersion() {
+        final Storage<ItemVariant> storage = getExtTransferTarget();
+        return storage == null ? 0l : storage.getVersion();
+    }
+    @Override 
+    public long insert(ItemVariant resource, long maxAmount, TransactionContext context) {
+
+        final Storage<ItemVariant> storage = getExtTransferTarget();
+        return storage == null ? 0l : storage.insert(resource, maxAmount, context);
+    }
+    @Override 
+    public long simulateExtract(ItemVariant resource, long maxAmount, @Nullable TransactionContext context) { 
+        final Storage<ItemVariant> storage = getExtTransferTarget();
+        if (storage == null) return 0l;
+        return storage.simulateExtract(resource, maxAmount, context);
+    } 
+    public long simulateInset(ItemVariant resource, long maxAmount, @Nullable TransactionContext context) { 
+        final Storage<ItemVariant> storage = getExtTransferTarget();
+        if (storage == null) return 0l;
+        return storage.simulateInsert(resource, maxAmount, context);
+    }
+    */
     public MachineBlockEntity getMachineEntity() {
         Room room = getRoom();
         try {
@@ -147,43 +347,35 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
     public Tunnel getTunnel() {
         return TunnelUtil.fromRoomAndPos(getRoom(), getPos());
     }
-
-    @Override
-    public DefaultedList<ItemStack> getItems() {
-        Room room = getRoom();
-
-        try {
-            Tunnel tunnel = getTunnel();
-            if (tunnel.getFace() == TunnelDirection.NONE) throw new Exception();
-            BlockEntity targetEntity = getExtTransferTarget();
-            if (targetEntity instanceof Inventory inv) {
-                DefaultedList<ItemStack> targetContents = DefaultedList.ofSize(inv.size(), ItemStack.EMPTY);
-                for (int i = 0; i < inv.size(); i++) {
-                    targetContents.set(i, inv.getStack(i));
-                }
-                return targetContents;
-            }
-        } catch (Exception ignored) {}
-
-        return DefaultedList.ofSize(1, ItemStack.EMPTY);
+    public class NullInventory extends SingleVariantStorage<ItemVariant> {
+        @Override 
+        protected long getCapacity(ItemVariant variant) {
+            return 0l;
+        }
+        @Override 
+        protected ItemVariant getBlankVariant() {
+            return ItemVariant.blank();
+        }
     }
-
-    @Override
-    public int size() {
-        Room room = getRoom();
-
-        if (getExtTransferTarget() instanceof Inventory inv)
-            return inv.size();
-        return 0;
+    public class NullFluidInventory extends SingleVariantStorage<FluidVariant> {
+        @Override 
+        protected long getCapacity(FluidVariant variant) {
+            return 0l;
+        }
+        @Override 
+        protected FluidVariant getBlankVariant() {
+            return FluidVariant.blank();
+        }
     }
 
     public class RenderAttachmentData {
         private final TunnelType type;
         private final boolean isConnected;
-
-        private RenderAttachmentData(TunnelType type, boolean isConnected) {
+        private final boolean isOutgoing;
+        private RenderAttachmentData(TunnelType type, boolean isConnected, boolean isOutgoing) {
             this.type = type;
             this.isConnected = isConnected;
+            this.isOutgoing = isOutgoing;
         }
 
         public TunnelType getType() {
@@ -192,6 +384,9 @@ public class TunnelWallBlockEntity extends AbstractWallBlockEntity implements Re
 
         public boolean isConnected() {
             return isConnected;
+        }
+        public boolean isOutgoing() {
+            return isOutgoing;
         }
     }
 }

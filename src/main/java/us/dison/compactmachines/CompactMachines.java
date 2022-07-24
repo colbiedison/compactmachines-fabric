@@ -8,17 +8,21 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
@@ -26,6 +30,8 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeEffects;
 import net.minecraft.world.biome.GenerationSettings;
 import net.minecraft.world.biome.SpawnSettings;
+import team.reborn.energy.api.EnergyStorage;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import us.dison.compactmachines.block.MachineBlock;
@@ -35,12 +41,14 @@ import us.dison.compactmachines.block.entity.MachineWallBlockEntity;
 import us.dison.compactmachines.block.entity.TunnelWallBlockEntity;
 import us.dison.compactmachines.block.enums.MachineSize;
 import us.dison.compactmachines.block.entity.MachineBlockEntity;
+import us.dison.compactmachines.data.persistent.Room;
 import us.dison.compactmachines.data.persistent.RoomManager;
 import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
+import us.dison.compactmachines.data.persistent.tunnel.TunnelType;
 import us.dison.compactmachines.item.PSDItem;
 import us.dison.compactmachines.item.TunnelItem;
 
-import java.util.ArrayList;
+import java.util.Optional;
 
 public class CompactMachines implements ModInitializer {
 
@@ -64,7 +72,6 @@ public class CompactMachines implements ModInitializer {
     public static final Identifier ID_WALL_TUNNEL = new Identifier(MODID, "tunnel_wall");
     public static final Identifier ID_PSD = new Identifier(MODID, "personal_shrinking_device");
     public static final Identifier ID_TUNNEL = new Identifier(MODID, "tunnel");
-
     // Block settings
     public static final FabricBlockSettings SETTINGS_BLOCK_MACHINE = FabricBlockSettings.of(Material.METAL).strength(4.0f).requiresTool();
     public static final FabricBlockSettings SETTINGS_BLOCK_WALL = FabricBlockSettings.of(Material.METAL).strength(4.0f).requiresTool();
@@ -78,17 +85,47 @@ public class CompactMachines implements ModInitializer {
     public static final MachineWallBlock BLOCK_WALL_UNBREAKABLE = new MachineWallBlock(SETTINGS_BLOCK_WALL, false);
     public static final MachineWallBlock BLOCK_WALL = new MachineWallBlock(SETTINGS_BLOCK_WALL, true);
     public static final TunnelWallBlock BLOCK_WALL_TUNNEL = new TunnelWallBlock(SETTINGS_BLOCK_WALL, false);
+   
+    // Item Settings
+    public static final FabricItemSettings SETTINGS_ITEM = new FabricItemSettings();
+    // Item
+    public static final Item ITEM_TUNNEL = new TunnelItem(SETTINGS_ITEM); 
+    public static final Item ITEM_PSD = new PSDItem(SETTINGS_ITEM);
+    public static final Item ITEM_MACHINE_TINY = new BlockItem(BLOCK_MACHINE_TINY, SETTINGS_ITEM);
+    public static final Item ITEM_MACHINE_SMALL = new BlockItem(BLOCK_MACHINE_SMALL, SETTINGS_ITEM);
+    public static final Item ITEM_MACHINE_NORMAL = new BlockItem(BLOCK_MACHINE_NORMAL, SETTINGS_ITEM);
+    public static final Item ITEM_MACHINE_LARGE = new BlockItem(BLOCK_MACHINE_LARGE, SETTINGS_ITEM);
+    public static final Item ITEM_MACHINE_GIANT = new BlockItem(BLOCK_MACHINE_GIANT, SETTINGS_ITEM);
+    public static final Item ITEM_MACHINE_MAXIMUM = new BlockItem(BLOCK_MACHINE_MAXIMUM, SETTINGS_ITEM);
+    public static final Item ITEM_WALL_UNBREAKABLE = new BlockItem(BLOCK_WALL_UNBREAKABLE, SETTINGS_ITEM);
+    public static final Item ITEM_WALL = new BlockItem(BLOCK_WALL, SETTINGS_ITEM);
+    public static final Item ITEM_WALL_TUNNEL = new BlockItem(BLOCK_WALL_TUNNEL, SETTINGS_ITEM);
+
 
     // Item group
-    public static final ItemGroup CM_ITEMGROUP = FabricItemGroupBuilder.build(
-            new Identifier(MODID, "title"),
-            () -> new ItemStack(BLOCK_MACHINE_NORMAL)
-    );
-    // Item settings
-    public static final FabricItemSettings SETTINGS_ITEM = new FabricItemSettings().group(CM_ITEMGROUP);
-    // Item
-    public static final Item ITEM_PSD = new PSDItem(SETTINGS_ITEM);
-    public static final Item ITEM_TUNNEL = new TunnelItem(SETTINGS_ITEM);
+    public static final ItemGroup CM_ITEMGROUP = FabricItemGroupBuilder.create(
+            new Identifier(MODID, "title"))
+            .icon(() -> new ItemStack(BLOCK_MACHINE_NORMAL))
+            .appendItems(stacks -> {
+                final ItemStack redstoneStack = new ItemStack(ITEM_TUNNEL);
+                redstoneStack.setSubNbt("type", NbtString.of(TunnelType.REDSTONE.getName()));
+                final ItemStack itemStack = new ItemStack(ITEM_TUNNEL);
+                itemStack.setSubNbt("type", NbtString.of(TunnelType.ITEM.getName()));
+                stacks.add(new ItemStack(ITEM_PSD));
+                stacks.add(new ItemStack(ITEM_MACHINE_TINY));
+                stacks.add(new ItemStack(ITEM_MACHINE_SMALL));
+                stacks.add(new ItemStack(ITEM_MACHINE_NORMAL));
+                stacks.add(new ItemStack(ITEM_MACHINE_LARGE));
+                stacks.add(new ItemStack(ITEM_MACHINE_GIANT));
+                stacks.add(new ItemStack(ITEM_MACHINE_MAXIMUM));
+                stacks.add(new ItemStack(ITEM_WALL_UNBREAKABLE));
+                stacks.add(new ItemStack(ITEM_WALL));
+                // omitting Wall Tunnel on purpose
+                stacks.add(redstoneStack);
+                stacks.add(itemStack);
+            })
+            .build();
+
 
     // BlockEntityType
     public static BlockEntityType<MachineBlockEntity> MACHINE_BLOCK_ENTITY;
@@ -145,25 +182,80 @@ public class CompactMachines implements ModInitializer {
         // REGISTER Fabric Transfer API blocks
         ItemStorage.SIDED.registerForBlockEntity(
                 (machineEntity, direction) -> {
-                    ArrayList<InventoryStorage> targets = new ArrayList<>();
-                    for (Tunnel tunnel : roomManager.getRoomByNumber(machineEntity.getMachineID()).getTunnels()) {
+                    final Room room = roomManager.getRoomByNumber(machineEntity.getMachineID());
+                    if (room == null) return null;
+                    for (Tunnel tunnel : room.getTunnels()) {
                         if (cmWorld.getBlockEntity(tunnel.getPos()) instanceof TunnelWallBlockEntity tunnelEntity) {
-                            tunnelEntity.setConnected(false);
+                            tunnelEntity.setConnectedToItem(false);
                             if (tunnel.getFace().toDirection() == null) continue;
                             if (!tunnel.getFace().toDirection().equals(direction)) continue;
-                            if (tunnelEntity.getInternalTransferTarget() instanceof Inventory inv) {
-                                tunnelEntity.setConnected(true);
-                                targets.add(InventoryStorage.of(inv, null));
+                            final Storage<ItemVariant> internalTarget = tunnelEntity.getInternalTransferTarget();
+                            if (internalTarget != null) {
+                                tunnelEntity.setConnectedToItem(true);
+                                return internalTarget;
                             }
                         }
                     }
 
-                    if (targets.size() < 1) return null;
-                    return targets.get( (int) (Math.random() * targets.size()) );
+                    return null;
                 },
                 MACHINE_BLOCK_ENTITY
         );
+        ItemStorage.SIDED.registerForBlockEntity(
+                (TunnelWallBlockEntity wallEntity, Direction direction) -> {
+                    return wallEntity.getExtTransferTarget();
+                },
+                TUNNEL_WALL_BLOCK_ENTITY
+        );
+        FluidStorage.SIDED.registerForBlockEntity(
+                    (machineEntity, direction) -> {
+                    final Room room = roomManager.getRoomByNumber(machineEntity.getMachineID());
+                    if (room == null) return null;
+                    for (Tunnel tunnel : room.getTunnels()) {
+                        if (cmWorld.getBlockEntity(tunnel.getPos()) instanceof TunnelWallBlockEntity tunnelEntity) {
+                            tunnelEntity.setConnectedToFluid(false);
+                            if (tunnel.getFace().toDirection() == null) continue;
+                            if (!tunnel.getFace().toDirection().equals(direction)) continue;
+                            final Optional<Storage<FluidVariant>> internalTarget = tunnelEntity.getInternalFluidTarget();
+                            if (internalTarget.isPresent()) {
+                                tunnelEntity.setConnectedToFluid(true);
+                                return internalTarget.get();
+                            }
+                        }
+                    }
 
+                    return null;
+
+                            
+                    }
+                , MACHINE_BLOCK_ENTITY);
+        FluidStorage.SIDED.registerForBlockEntity(
+                (wallEntity, direction) -> {
+                    // the devil corrupts everything he touches
+                    return wallEntity.getExtFluidTarget().orElse(null);
+                },
+                TUNNEL_WALL_BLOCK_ENTITY);
+        EnergyStorage.SIDED.registerForBlockEntity(
+                (machineEntity, direction) -> {
+                    final Room room = roomManager.getRoomByNumber(machineEntity.getMachineID());
+                    if (room == null) return null;
+                    for (Tunnel tunnel : room.getTunnels()) {
+                        if (cmWorld.getBlockEntity(tunnel.getPos()) instanceof TunnelWallBlockEntity tunnelEntity) {
+                            tunnelEntity.setConnectedToEnergy(false);
+                            if (tunnel.getFace().toDirection() != direction) continue;
+                            final Optional<EnergyStorage> internalTarget = tunnelEntity.getInternalEnergyTarget();
+                            if (internalTarget.isPresent()) {
+                                tunnelEntity.setConnectedToEnergy(true);
+                                return internalTarget.get();
+                            }
+                        }
+                    }
+                    return null;
+                }, MACHINE_BLOCK_ENTITY);
+        EnergyStorage.SIDED.registerForBlockEntity(
+                (wallEntity, direction) -> {
+                    return wallEntity.getExtEnergyTarget().orElse(null);
+                }, TUNNEL_WALL_BLOCK_ENTITY);
         // REGISTER Block
         Registry.register(Registry.BLOCK, ID_TINY, BLOCK_MACHINE_TINY);
         Registry.register(Registry.BLOCK, ID_SMALL, BLOCK_MACHINE_SMALL);
@@ -176,18 +268,18 @@ public class CompactMachines implements ModInitializer {
         Registry.register(Registry.BLOCK, ID_WALL_TUNNEL, BLOCK_WALL_TUNNEL);
 
         // REGISTER Item
-        Registry.register(Registry.ITEM, ID_TINY,       new BlockItem(Registry.BLOCK.get(ID_TINY), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_SMALL,      new BlockItem(Registry.BLOCK.get(ID_SMALL), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_NORMAL,     new BlockItem(Registry.BLOCK.get(ID_NORMAL), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_LARGE,      new BlockItem(Registry.BLOCK.get(ID_LARGE), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_GIANT,      new BlockItem(Registry.BLOCK.get(ID_GIANT), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_MAXIMUM,    new BlockItem(Registry.BLOCK.get(ID_MAXIMUM), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_WALL_UNBREAKABLE,   new BlockItem(Registry.BLOCK.get(ID_WALL_UNBREAKABLE), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_WALL,       new BlockItem(Registry.BLOCK.get(ID_WALL), SETTINGS_ITEM));
-        Registry.register(Registry.ITEM, ID_WALL_TUNNEL,       new BlockItem(Registry.BLOCK.get(ID_WALL_TUNNEL), SETTINGS_ITEM));
+        Registry.register(Registry.ITEM, ID_TINY,       ITEM_MACHINE_TINY);
+        Registry.register(Registry.ITEM, ID_SMALL,      ITEM_MACHINE_SMALL);
+        Registry.register(Registry.ITEM, ID_NORMAL,     ITEM_MACHINE_NORMAL);
+        Registry.register(Registry.ITEM, ID_LARGE,      ITEM_MACHINE_LARGE);
+        Registry.register(Registry.ITEM, ID_GIANT,      ITEM_MACHINE_GIANT);
+        Registry.register(Registry.ITEM, ID_MAXIMUM,    ITEM_MACHINE_MAXIMUM);
+        Registry.register(Registry.ITEM, ID_WALL_UNBREAKABLE, ITEM_WALL_UNBREAKABLE);
+        Registry.register(Registry.ITEM, ID_WALL,       ITEM_WALL);
+        Registry.register(Registry.ITEM, ID_WALL_TUNNEL,ITEM_WALL_TUNNEL);
         Registry.register(Registry.ITEM, ID_PSD, ITEM_PSD);
         Registry.register(Registry.ITEM, ID_TUNNEL, ITEM_TUNNEL);
-
+       
         LOGGER.info("CompactMachines initialized");
     }
 
