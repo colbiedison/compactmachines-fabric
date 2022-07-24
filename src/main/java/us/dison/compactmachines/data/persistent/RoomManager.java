@@ -7,11 +7,13 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
 import org.apache.commons.lang3.Validate;
 import us.dison.compactmachines.CompactMachines;
 import us.dison.compactmachines.data.persistent.tunnel.Tunnel;
+import us.dison.compactmachines.util.RoomUtil;
 import us.dison.compactmachines.util.TunnelUtil;
 
 import java.util.ArrayList;
@@ -181,7 +183,6 @@ public class RoomManager extends PersistentState {
             addTunnel(id, tunnel);
             return;
         }
-        BlockPos pos = tunnel.getPos();
         Tunnel targetTunnel = null;
         for (Tunnel oldTunnel : tunnels) {
             if (TunnelUtil.equalBlockPos(tunnel.getPos(), oldTunnel.getPos())) {
@@ -212,6 +213,16 @@ public class RoomManager extends PersistentState {
     public Room getRoomByMachinePos(BlockPos machine) {
         for (Room room : rooms) {
             if (room.getMachinePos() == machine) return room;
+        }
+        return null;
+    }
+    public Room getFromPosition(BlockPos pos) {
+        for (Room room: rooms) {
+            // literally doesn't matter as long as it covers the biggest box 
+            final Box box = RoomUtil.getBox(RoomUtil.getCenterPosByID(room.getNumber()), 13); 
+            if (box.contains(pos.getX(), pos.getY(), pos.getZ())) {
+                return room;
+            }
         }
         return null;
     }

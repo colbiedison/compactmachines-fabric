@@ -34,6 +34,7 @@ import us.dison.compactmachines.util.RedstoneUtil;
 import us.dison.compactmachines.util.RoomUtil;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class MachineBlock extends BlockWithEntity {
    
@@ -156,7 +157,12 @@ public class MachineBlock extends BlockWithEntity {
         super.onPlaced(world, pos, state, placer, itemStack);
 
         if (!(world.getBlockEntity(pos) instanceof MachineBlockEntity blockEntity)) return;
-
+        if (world == CompactMachines.cmWorld) {
+            final Room room = CompactMachines.getRoomManager().getFromPosition(pos);
+            if (room != null) {
+                blockEntity.setParentID(Optional.of(room.getNumber()));
+            }
+        }
         blockEntity.setOwner(placer.getUuid());
         blockEntity.markDirty();
         if (!world.isClient()) {

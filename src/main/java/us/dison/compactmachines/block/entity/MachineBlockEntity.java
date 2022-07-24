@@ -20,11 +20,13 @@ import us.dison.compactmachines.util.RoomUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class MachineBlockEntity extends BlockEntity {
 
     private MachineSize size;
+    private Optional<Integer> parentID = Optional.empty();
     private int machineID = -1;
     public int lastPlayerCheckTick = -1;
     private UUID owner;
@@ -75,6 +77,8 @@ public class MachineBlockEntity extends BlockEntity {
 
         this.machineID = tag.getInt("number");
         this.owner = tag.getUuid("uuid");
+        final int daID = tag.getInt("parentID");
+        this.parentID = Optional.ofNullable(daID != -1 ? daID : null);
     }
 
     @Override
@@ -84,7 +88,7 @@ public class MachineBlockEntity extends BlockEntity {
         if (this.owner == null) setOwner(new UUID(0, 0));
         tag.putUuid("uuid", this.owner);
 //        tag.put("inventories", inventory.toNbt());
-
+        this.parentID.ifPresentOrElse(id -> tag.putInt("parentID", id), () -> tag.putInt("parentID", -1));
         super.writeNbt(tag);
     }
 
@@ -115,6 +119,13 @@ public class MachineBlockEntity extends BlockEntity {
     public void setOwner(UUID owner) {
         this.owner = owner;
         this.markDirty();
+    }
+    public Optional<Integer> getParentID() {
+        return parentID;
+    }
+    public void setParentID(Optional<Integer> id) {
+        this.parentID = id; 
+        markDirty();
     }
 
 }
